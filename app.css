@@ -1,0 +1,16 @@
+html,
+body,
+video {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+video {
+  display: block;
+  box-sizing: border-box;
+  background-color: #ff0;
+  border-radius: 50%;
+  background-size: contain;
+  background-position: center bottom;
+}
