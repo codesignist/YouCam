@@ -6,6 +6,10 @@ video {
   margin: 0;
 }
 
+body {
+  -webkit-app-region: drag;
+}
+
 video {
   display: block;
   box-sizing: border-box;
