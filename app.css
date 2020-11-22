@@ -9,8 +9,6 @@ video {
 video {
   display: block;
   box-sizing: border-box;
-  background-color: #ff0;
   border-radius: 50%;
-  background-size: contain;
-  background-position: center bottom;
+  object-fit: cover;
 }
