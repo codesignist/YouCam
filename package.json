@@ -5,6 +5,7 @@
   "main": "src/app.html",
   "window": {
     "show": false,
+    "always_on_top": true,
     "frame": false,
     "transparent": true,
     "position": "center",
