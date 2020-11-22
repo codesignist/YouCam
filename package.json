@@ -13,7 +13,7 @@
   },
   "scripts": {
     "start": "nw .src/",
-    "build": "nwbuild --platforms win64 --buildDir / dist/"
+    "build": "nwbuild -p win64 ."
   },
   "keywords": [],
   "author": "",
