@@ -2,7 +2,7 @@
   "name": "youcam",
   "version": "1.0.0",
   "description": "",
-  "main": "app.html",
+  "main": "src/app.html",
   "window": {
     "show": false,
     "frame": false,
@@ -12,12 +12,16 @@
     "height": 250
   },
   "scripts": {
-    "start": "nw ."
+    "start": "nw .src/",
+    "build": "nwbuild --platforms win64 --buildDir / dist/"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "nw": "^0.50.0"
+  },
+  "devDependencies": {
+    "nw-builder": "^3.5.7"
   }
 }
