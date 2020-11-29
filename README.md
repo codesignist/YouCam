@@ -1,6 +1,6 @@
 # YouCam
 
-YouTube yayıncıları için geliştirilmiş mini masaüstü uygulaması.
+YouTube yayıncıları için geliştirilmiş masaüstü webcam uygulaması.
 
 ![YouCamSS](https://user-images.githubusercontent.com/1472881/100539154-81fe7000-3245-11eb-933d-9c6ad3253a8d.PNG)
 
