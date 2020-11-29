@@ -9,6 +9,7 @@
     "frame": false,
     "transparent": true,
     "position": "center",
+    "show_in_taskbar": false,
     "width": 250,
     "height": 250
   },
