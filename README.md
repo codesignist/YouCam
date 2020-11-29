@@ -29,6 +29,12 @@ Daha fazla bilgi için; [NW Builder](https://docs.nwjs.io/en/latest/For%20Develo
 
 * [NW](https://nwjs.io/) - Node Webkit
 
+## Yapılacaklar
+
+- [ ] Ayna (mirror) özelliği
+- [ ] Keskin ve yumuşak kenarlı farklı şekiller
+- [ ] İngilizce ReadMe.md
+
 ## Katılım
 
 Geliştirilmesini istediğiniz özellikleri bildirebilir ya da PR göndererek katılımda bulunabilirsiniz.
