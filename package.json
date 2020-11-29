@@ -1,12 +1,17 @@
 {
   "name": "youcam",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A webcam app for YouTube users",
+  "keywords": [
+    "webcam",
+    "gadget"
+  ],
   "main": "src/app.html",
   "window": {
     "show": false,
     "always_on_top": true,
     "frame": false,
+    "icon": "assets/icon.png",
     "transparent": true,
     "position": "center",
     "show_in_taskbar": false,
@@ -17,7 +22,6 @@
     "start": "nw .src/",
     "build": "nwbuild -p win64 ."
   },
-  "keywords": [],
   "author": "codesignist",
   "license": "ISC",
   "dependencies": {
