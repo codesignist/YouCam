@@ -10,6 +10,9 @@ let menuItems = [
   {
     type: "normal",
     label: "YouCam",
+    click: function () {
+      nw.Window.get().show();
+    },
   },
   {
     type: "separator",
@@ -45,4 +48,5 @@ navigator.webkitGetUserMedia(
   }
 );
 
-gui.Window.get().show();
+var win = gui.Window.get();
+win.show();
