@@ -1,7 +1,7 @@
 {
   "name": "youcam",
   "version": "1.0.0",
-  "description": "",
+  "description": "A webcam app for YouTube users",
   "main": "src/app.html",
   "window": {
     "show": false,
