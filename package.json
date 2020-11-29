@@ -21,7 +21,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "nw": "^0.50.0"
+    "nw": "^0.50.1"
   },
   "devDependencies": {
     "nw-builder": "^3.5.7"
