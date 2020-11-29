@@ -2,6 +2,12 @@
 
 YouTube yayıncıları için geliştirilmiş mini masaüstü uygulaması.
 
+![YouCamSS](https://user-images.githubusercontent.com/1472881/100538977-0f40c500-3244-11eb-8e42-813cb53a4919.PNG)
+
+### Motivasyon
+
+OBS studio'da kamera kaydı oluşturulurken ekranda kendinizi göremiyorsunuz malesef. Bunun için ayrıca bir yazılıma ya da referans monitöre ihtiyacınız var. Bu şekilde minik, pratik bir yazılımın olmayışı ve NW.js ile deneme çalışması yapmak için bu uygulama oluşturuldu.
+
 ### Kurulum
 
 Doğrudan çalıştırmak için:
