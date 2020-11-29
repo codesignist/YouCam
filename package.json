@@ -18,7 +18,7 @@
     "build": "nwbuild -p win64 ."
   },
   "keywords": [],
-  "author": "",
+  "author": "codesignist",
   "license": "ISC",
   "dependencies": {
     "nw": "^0.50.1"
