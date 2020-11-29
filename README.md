@@ -2,7 +2,7 @@
 
 YouTube yayıncıları için geliştirilmiş mini masaüstü uygulaması.
 
-![YouCamSS](https://user-images.githubusercontent.com/1472881/100538977-0f40c500-3244-11eb-8e42-813cb53a4919.PNG)
+![YouCamSS](https://user-images.githubusercontent.com/1472881/100539154-81fe7000-3245-11eb-933d-9c6ad3253a8d.PNG)
 
 ### Motivasyon
 
