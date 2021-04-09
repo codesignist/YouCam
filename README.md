@@ -2,6 +2,8 @@
 
 YouTube yayıncıları için geliştirilmiş masaüstü webcam uygulaması.
 
+[English readme/İngilizce readme](EN_README.md)
+
 ![YouCamSS](https://user-images.githubusercontent.com/1472881/100539154-81fe7000-3245-11eb-933d-9c6ad3253a8d.PNG)
 
 ### Motivasyon
@@ -33,7 +35,7 @@ Daha fazla bilgi için; [NW Builder](https://docs.nwjs.io/en/latest/For%20Develo
 
 - [ ] Ayna (mirror) özelliği
 - [ ] Keskin ve yumuşak kenarlı farklı şekiller
-- [ ] İngilizce ReadMe.md
+- [x] İngilizce ReadMe.md
 
 ## Katılım
 
