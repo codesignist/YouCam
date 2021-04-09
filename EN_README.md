@@ -35,7 +35,7 @@ For more info; [NW Builder](https://docs.nwjs.io/en/latest/For%20Developers/Buil
 
 - [ ] Mirror feature
 - [ ] Curved sides and other shapes
-- [+] English ReadMe.md
+- [x] English ReadMe.md
 
 ## Contributing
 
