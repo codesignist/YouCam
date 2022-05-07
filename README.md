@@ -29,12 +29,12 @@ Daha fazla bilgi için; [NW Builder](https://docs.nwjs.io/en/latest/For%20Develo
 
 ## Kullanılan Paket/ler
 
-* [NW](https://nwjs.io/) - Node Webkit
+- [NW](https://nwjs.io/) - Node Webkit
 
 ## Yapılacaklar
 
-- [ ] Ayna (mirror) özelliği
 - [ ] Keskin ve yumuşak kenarlı farklı şekiller
+- [x] Ayna (mirror) özelliği
 - [x] İngilizce ReadMe.md
 
 ## Katılım

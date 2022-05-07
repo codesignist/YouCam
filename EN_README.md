@@ -8,7 +8,7 @@ Advanced desktop webcam application for youtube streamers.
 
 ### Motivation
 
-Unfortunately in OBS studio you cant see yourself while having your camera recorded. For that you need an extra application or a referrence monitor. This app was made  because of that extra application not existing and to try out NW.js
+Unfortunately in OBS studio you cant see yourself while having your camera recorded. For that you need an extra application or a referrence monitor. This app was made because of that extra application not existing and to try out NW.js
 
 ### Install
 
@@ -29,12 +29,12 @@ For more info; [NW Builder](https://docs.nwjs.io/en/latest/For%20Developers/Buil
 
 ## Used Package(s)
 
-* [NW](https://nwjs.io/) - Node Webkit
+- [NW](https://nwjs.io/) - Node Webkit
 
 ## Todo
 
-- [ ] Mirror feature
 - [ ] Curved sides and other shapes
+- [x] Mirror feature
 - [x] English ReadMe.md
 
 ## Contributing

@@ -15,4 +15,5 @@ video {
   box-sizing: border-box;
   border-radius: 50%;
   object-fit: cover;
+  transform: rotateY(180deg);
 }
