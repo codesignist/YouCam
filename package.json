@@ -20,7 +20,8 @@
   },
   "scripts": {
     "start": "nw .src/",
-    "build": "nwbuild -p win64 ."
+    "build": "nwbuild -p win64 .",
+    "dist": "build --tasks win-x64 --mirror https://dl.nwjs.io/ ."
   },
   "author": "codesignist",
   "license": "ISC",
@@ -28,6 +29,9 @@
     "nw": "^0.67.1"
   },
   "devDependencies": {
-    "nw-builder": "^3.8.2"
+    "nwjs-builder-phoenix": "^1.15.0"
+  },
+  "build": {
+    "nwVersion": "0.67.1"
   }
 }
