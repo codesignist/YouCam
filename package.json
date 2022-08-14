@@ -25,9 +25,9 @@
   "author": "codesignist",
   "license": "ISC",
   "dependencies": {
-    "nw": "^0.66.1"
+    "nw": "^0.67.1"
   },
   "devDependencies": {
-    "nw-builder": "^3.8.1"
+    "nw-builder": "^3.8.2"
   }
 }
