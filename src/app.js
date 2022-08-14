@@ -15,6 +15,14 @@ let menuItems = [
     },
   },
   {
+    type: "normal",
+    label: "Mirror",
+    click: function () {
+      const video = document.getElementById("camera");
+      video.classList.toggle("mirror");
+    },
+  },
+  {
     type: "separator",
   },
   {
