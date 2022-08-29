@@ -1,3 +1,7 @@
+:root {
+  --rotate: 0deg;
+}
+
 html,
 body,
 video {
@@ -17,6 +21,7 @@ video {
   border-radius: 50%;
   object-fit: cover;
   aspect-ratio: 1 / 1;
+  transform: rotate(var(--rotate));
 }
 video.mirror {
   transform: rotateY(180deg);

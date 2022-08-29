@@ -5,6 +5,8 @@ let tray = new nw.Tray({
   icon: "assets/icon-tray.png",
 });
 
+let deg = 0;
+
 var menu = new nw.Menu();
 let menuItems = [
   {
@@ -20,6 +22,14 @@ let menuItems = [
     click: function () {
       const video = document.getElementById("camera");
       video.classList.toggle("mirror");
+    },
+  },
+  {
+    type: "normal",
+    label: "Rotate",
+    click: function () {
+      deg += 90;
+      document.documentElement.style.setProperty("--rotate", `${deg}deg`);
     },
   },
   {
