@@ -5,6 +5,7 @@ let tray = new nw.Tray({
   icon: "assets/icon-tray.png",
 });
 
+let isMirror = false;
 let deg = 0;
 
 let currentStream;
@@ -101,18 +102,19 @@ let menuItems = [
     submenu,
   },
   {
-    type: "normal",
+    type: "checkbox",
     label: "Mirror",
+    checked: isMirror,
     click: function () {
-      const video = document.getElementById("camera");
-      video.classList.toggle("mirror");
+      isMirror = !isMirror;
+      document.documentElement.style.setProperty("--scaleX", isMirror ? -1 : 1);
     },
   },
   {
     type: "normal",
     label: "Rotate",
     click: function () {
-      deg += 90;
+      deg -= 90;
       document.documentElement.style.setProperty("--rotate", `${deg}deg`);
     },
   },
