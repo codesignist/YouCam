@@ -11,10 +11,6 @@ video {
   overflow: hidden;
 }
 
-body {
-  -webkit-app-region: drag;
-}
-
 video {
   display: block;
   box-sizing: border-box;

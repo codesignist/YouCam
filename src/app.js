@@ -68,3 +68,27 @@ navigator.webkitGetUserMedia(
 
 var win = gui.Window.get();
 win.show();
+
+document.body.addEventListener(
+  "contextmenu",
+  function (ev) {
+    ev.preventDefault();
+    menu.popup(ev.x, ev.y);
+    return false;
+  },
+  false
+);
+
+let mousePos = { x: 0, y: 0 };
+function mouseMove(ev) {
+  win.moveTo(ev.screenX - mousePos.x, ev.screenY - mousePos.y);
+}
+
+document.body.addEventListener("mousedown", function (ev) {
+  mousePos = { x: ev.x, y: ev.y };
+  window.addEventListener("mousemove", mouseMove);
+});
+
+document.body.addEventListener("mouseup", function (ev) {
+  window.removeEventListener("mousemove", mouseMove);
+});
