@@ -7,6 +7,85 @@ let tray = new nw.Tray({
 
 let deg = 0;
 
+let currentStream;
+function stopMediaTracks(stream) {
+  stream.getTracks().forEach((track) => {
+    track.stop();
+  });
+}
+function setVideo(id) {
+  if (typeof currentStream !== "undefined") {
+    stopMediaTracks(currentStream);
+  }
+  let videoConstraints = { facingMode: "user" };
+
+  if (!id) {
+    videoConstraints.facingMode = "environment";
+  } else {
+    alert(id);
+    videoConstraints.deviceId = { exact: id };
+  }
+  navigator.webkitGetUserMedia(
+    { video: videoConstraints },
+    function (stream) {
+      const video = document.getElementById("camera");
+      currentStream = stream;
+      video.srcObject = stream;
+    },
+    function () {
+      alert("could not connect stream");
+    }
+  );
+}
+setVideo();
+var submenu = new nw.Menu();
+if (!navigator.mediaDevices?.enumerateDevices) {
+  console.log("enumerateDevices() not supported.");
+} else {
+  // List cameras and microphones.
+  navigator.mediaDevices
+    .enumerateDevices()
+    .then((devices) => {
+      devices.forEach((device) => {
+        if (device.kind === "videoinput") {
+          submenu.append(
+            new nw.MenuItem({
+              label: device.label,
+              click: function () {
+                setVideo();
+                if (typeof currentStream !== "undefined") {
+                  stopMediaTracks(currentStream);
+                }
+                let videoConstraints = { facingMode: "user" };
+
+                if (!id) {
+                  videoConstraints.facingMode = "environment";
+                } else {
+                  alert(id);
+                  videoConstraints.deviceId = { exact: id };
+                }
+                navigator.getUserMedia(
+                  { video: videoConstraints },
+                  function (stream) {
+                    const video = document.getElementById("camera");
+                    currentStream = stream;
+                    video.srcObject = stream;
+                  },
+                  function () {
+                    alert("could not connect stream");
+                  }
+                );
+              },
+            })
+          );
+        }
+      });
+    })
+    .catch((err) => {
+      console.error(`${err.name}: ${err.message}`);
+    });
+}
+
 var menu = new nw.Menu();
 let menuItems = [
   {
@@ -15,6 +94,11 @@ let menuItems = [
     click: function () {
       nw.Window.get().show();
     },
+  },
+  {
+    type: "normal",
+    label: "Cam source",
+    submenu,
   },
   {
     type: "normal",
@@ -43,6 +127,7 @@ let menuItems = [
     },
   },
 ];
+
 menuItems.forEach(function (item) {
   menu.append(new nw.MenuItem(item));
 });
@@ -54,17 +139,6 @@ if (process.platform == "darwin") {
   menu.createMacBuiltin && menu.createMacBuiltin(window.document.title);
   gui.Window.get().menu = menu;
 }
-
-navigator.webkitGetUserMedia(
-  { video: true },
-  function (stream) {
-    const video = document.getElementById("camera");
-    video.srcObject = stream;
-  },
-  function () {
-    alert("could not connect stream");
-  }
-);
 
 var win = gui.Window.get();
 win.show();
