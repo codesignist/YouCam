@@ -1,6 +1,7 @@
 :root {
   --rotate: 0deg;
   --scaleX: 1;
+  --radius: 50%;
 }
 
 html,
@@ -15,12 +16,12 @@ video {
 video {
   display: block;
   box-sizing: border-box;
-  border-radius: 50%;
+  border-radius: var(--radius);
   object-fit: cover;
   aspect-ratio: 1 / 1;
   transform: scaleX(var(--scaleX)) rotate(var(--rotate));
 }
 
 body {
-  border-radius: 50%;
+  border-radius: var(--radius);
 }

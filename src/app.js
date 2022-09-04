@@ -7,10 +7,28 @@ let tray = new nw.Tray({
 
 let isMirror = localStorage.getItem("isMirror") ?? false;
 let deg = localStorage.getItem("deg") ?? 0;
+let shape = localStorage.getItem("shape") ?? "Circle";
+var shapes = [
+  {
+    label: "Square",
+    val: "0.1px",
+  },
+  {
+    label: "Rounded",
+    val: "16px",
+  },
+  {
+    label: "Circle",
+    val: "50%",
+  },
+];
 
 function updateVars() {
-  document.documentElement.style.setProperty("--scaleX", isMirror ? -1 : 1);
-  document.documentElement.style.setProperty("--rotate", `${deg}deg`);
+  let docStyle = document.documentElement.style;
+  docStyle.setProperty("--scaleX", isMirror ? -1 : 1);
+  docStyle.setProperty("--rotate", `${deg}deg`);
+  let shapeVal = shapes.find((o) => o.label === shape).val ?? "50%";
+  docStyle.setProperty("--radius", shapeVal);
 }
 
 updateVars();
@@ -94,6 +112,21 @@ if (!navigator.mediaDevices?.enumerateDevices) {
     });
 }
 
+var shapeSubMenu = new nw.Menu();
+shapes.map((shapeObj) =>
+  shapeSubMenu.append(
+    nw.MenuItem({
+      type: "normal",
+      label: shapeObj.label,
+      click: function () {
+        shape = shapeObj.label;
+        localStorage.setItem("shape", shapeObj.label);
+        updateVars();
+      },
+    })
+  )
+);
+
 var menu = new nw.Menu();
 let menuItems = [
   {
@@ -107,6 +140,11 @@ let menuItems = [
     type: "normal",
     label: "Cam source",
     submenu,
+  },
+  {
+    type: "normal",
+    label: "Shape",
+    submenu: shapeSubMenu,
   },
   {
     type: "checkbox",

@@ -33,7 +33,7 @@ Daha fazla bilgi için; [NW Builder](https://docs.nwjs.io/en/latest/For%20Develo
 
 ## Yapılacaklar
 
-- [ ] Keskin ve yumuşak kenarlı farklı şekiller
+- [x] Keskin ve yumuşak kenarlı farklı şekiller
 - [x] Ayna (mirror) özelliği
 - [x] İngilizce ReadMe.md
 

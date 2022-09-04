@@ -33,7 +33,7 @@ For more info; [NW Builder](https://docs.nwjs.io/en/latest/For%20Developers/Buil
 
 ## Todo
 
-- [ ] Curved sides and other shapes
+- [x] Curved sides and other shapes
 - [x] Mirror feature
 - [x] English ReadMe.md
 
