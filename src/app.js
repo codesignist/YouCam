@@ -5,8 +5,15 @@ let tray = new nw.Tray({
   icon: "assets/icon-tray.png",
 });
 
-let isMirror = false;
-let deg = 0;
+let isMirror = localStorage.getItem("isMirror") ?? false;
+let deg = localStorage.getItem("deg") ?? 0;
+
+function updateVars() {
+  document.documentElement.style.setProperty("--scaleX", isMirror ? -1 : 1);
+  document.documentElement.style.setProperty("--rotate", `${deg}deg`);
+}
+
+updateVars();
 
 let currentStream;
 function stopMediaTracks(stream) {
@@ -107,7 +114,8 @@ let menuItems = [
     checked: isMirror,
     click: function () {
       isMirror = !isMirror;
-      document.documentElement.style.setProperty("--scaleX", isMirror ? -1 : 1);
+      localStorage.setItem("isMirror", isMirror);
+      updateVars();
     },
   },
   {
@@ -115,7 +123,8 @@ let menuItems = [
     label: "Rotate",
     click: function () {
       deg -= 90;
-      document.documentElement.style.setProperty("--rotate", `${deg}deg`);
+      localStorage.setItem("deg", deg);
+      updateVars();
     },
   },
   {
