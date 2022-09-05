@@ -2,7 +2,7 @@
 
 YouTube yayıncıları için geliştirilmiş masaüstü webcam uygulaması.
 
-[English readme/İngilizce readme](EN_README.md)
+[English readme/İngilizce readme](README_EN.md)
 
 ![YouCamSS](https://user-images.githubusercontent.com/1472881/100539154-81fe7000-3245-11eb-933d-9c6ad3253a8d.PNG)
 
