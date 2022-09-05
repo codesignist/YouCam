@@ -33,6 +33,7 @@ For more info; [NW Builder](https://docs.nwjs.io/en/latest/For%20Developers/Buil
 
 ## Todo
 
+- [ ] Size setups
 - [x] Curved sides and other shapes
 - [x] Mirror feature
 - [x] English ReadMe.md
