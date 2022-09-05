@@ -6,7 +6,7 @@ let tray = new nw.Tray({
 });
 
 let isMirror = localStorage.getItem("isMirror");
-let deg = localStorage.getItem("deg") ?? 0;
+let deg = parseInt(localStorage.getItem("deg")) ?? 0;
 let shape = localStorage.getItem("shape") ?? "Circle";
 var shapes = [
   {
@@ -127,6 +127,32 @@ shapes.map((shapeObj) =>
   )
 );
 
+function rotate(rotateBy = 90) {
+  deg += rotateBy;
+  localStorage.setItem("deg", deg);
+  updateVars();
+}
+
+var rotateSubMenu = new nw.Menu();
+rotateSubMenu.append(
+  nw.MenuItem({
+    type: "normal",
+    label: "Rotate CW",
+    click: function () {
+      rotate(-90);
+    },
+  })
+);
+rotateSubMenu.append(
+  nw.MenuItem({
+    type: "normal",
+    label: "Rotate CCW",
+    click: function () {
+      rotate(90);
+    },
+  })
+);
+
 var menu = new nw.Menu();
 let menuItems = [
   {
@@ -147,21 +173,17 @@ let menuItems = [
     submenu: shapeSubMenu,
   },
   {
+    type: "normal",
+    label: "Rotate",
+    submenu: rotateSubMenu,
+  },
+  {
     type: "checkbox",
     label: "Mirror",
     checked: isMirror,
     click: function () {
       isMirror = !isMirror;
       localStorage.setItem("isMirror", isMirror);
-      updateVars();
-    },
-  },
-  {
-    type: "normal",
-    label: "Rotate",
-    click: function () {
-      deg -= 90;
-      localStorage.setItem("deg", deg);
       updateVars();
     },
   },
