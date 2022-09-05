@@ -5,7 +5,7 @@ let tray = new nw.Tray({
   icon: "assets/icon-tray.png",
 });
 
-let isMirror = localStorage.getItem("isMirror") ?? false;
+let isMirror = localStorage.getItem("isMirror");
 let deg = localStorage.getItem("deg") ?? 0;
 let shape = localStorage.getItem("shape") ?? "Circle";
 var shapes = [
