@@ -20,6 +20,7 @@ video {
   object-fit: cover;
   aspect-ratio: 1 / 1;
   transform: scaleX(var(--scaleX)) rotate(var(--rotate));
+  transition: all 0.2s;
 }
 
 body {
