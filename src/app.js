@@ -7,6 +7,7 @@ let tray = new nw.Tray({
 
 let isMirror = localStorage.getItem("isMirror");
 let deg = parseInt(localStorage.getItem("deg")) ?? 0;
+if (isNaN(deg)) deg = 0;
 let shape = localStorage.getItem("shape") ?? "Circle";
 var shapes = [
   {
@@ -24,12 +25,15 @@ var shapes = [
 ];
 
 function updateVars() {
+  console.log("updateVars");
   let docStyle = document.documentElement.style;
   docStyle.setProperty("--scaleX", isMirror ? -1 : 1);
   docStyle.setProperty("--rotate", `${deg}deg`);
   let shapeVal = shapes.find((o) => o.label === shape).val ?? "50%";
   docStyle.setProperty("--radius", shapeVal);
 }
+
+console.log("test");
 
 updateVars();
 
@@ -128,7 +132,7 @@ shapes.map((shapeObj) =>
 );
 
 function rotate(rotateBy = 90) {
-  deg += rotateBy;
+  deg += rotateBy * (isMirror ? 1 : -1);
   localStorage.setItem("deg", deg);
   updateVars();
 }
