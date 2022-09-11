@@ -25,15 +25,12 @@ var shapes = [
 ];
 
 function updateVars() {
-  console.log("updateVars");
   let docStyle = document.documentElement.style;
   docStyle.setProperty("--scaleX", isMirror ? -1 : 1);
   docStyle.setProperty("--rotate", `${deg}deg`);
   let shapeVal = shapes.find((o) => o.label === shape).val ?? "50%";
   docStyle.setProperty("--radius", shapeVal);
 }
-
-console.log("test");
 
 updateVars();
 
