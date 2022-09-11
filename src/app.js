@@ -68,7 +68,6 @@ var submenu = new nw.Menu();
 if (!navigator.mediaDevices?.enumerateDevices) {
   console.log("enumerateDevices() not supported.");
 } else {
-  // List cameras and microphones.
   navigator.mediaDevices
     .enumerateDevices()
     .then((devices) => {
@@ -182,7 +181,6 @@ menuItems.forEach(function (item) {
 });
 tray.menu = menu;
 
-// Extend application menu for Mac OS
 if (process.platform == "darwin") {
   var menu = new gui.Menu({ type: "menubar" });
   menu.createMacBuiltin && menu.createMacBuiltin(window.document.title);
