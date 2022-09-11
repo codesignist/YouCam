@@ -49,7 +49,6 @@ function setVideo(id) {
   if (!id) {
     videoConstraints.facingMode = "environment";
   } else {
-    alert(id);
     videoConstraints.deviceId = { exact: id };
   }
   navigator.webkitGetUserMedia(
@@ -79,29 +78,7 @@ if (!navigator.mediaDevices?.enumerateDevices) {
             new nw.MenuItem({
               label: device.label,
               click: function () {
-                setVideo();
-                if (typeof currentStream !== "undefined") {
-                  stopMediaTracks(currentStream);
-                }
-                let videoConstraints = { facingMode: "user" };
-
-                if (!id) {
-                  videoConstraints.facingMode = "environment";
-                } else {
-                  alert(id);
-                  videoConstraints.deviceId = { exact: id };
-                }
-                navigator.getUserMedia(
-                  { video: videoConstraints },
-                  function (stream) {
-                    const video = document.getElementById("camera");
-                    currentStream = stream;
-                    video.srcObject = stream;
-                  },
-                  function () {
-                    alert("could not connect stream");
-                  }
-                );
+                setVideo(device.deviceId);
               },
             })
           );
