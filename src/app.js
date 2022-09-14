@@ -167,7 +167,7 @@ try {
   alert("ERROR: " + error);
 }
 
-async function rotate(rotateBy = 90) {
+function rotate(rotateBy = 90) {
   deg = (deg + rotateBy) % 360; // [0, 90, 180, 270]
   if (Math.abs(deg % 90) > 0) {
     deg -= deg % 90; // etc. 182 -> 180. get rid of excess value
@@ -175,7 +175,7 @@ async function rotate(rotateBy = 90) {
   localStorage.setItem("deg", deg);
   updateVars();
   if (aspectRatio != "None") {
-    await localStorage.setItem(
+    localStorage.setItem(
       "aspectRatio",
       aspectRatio.split(":").reverse().join(":")
     );
