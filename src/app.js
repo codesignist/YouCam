@@ -9,6 +9,8 @@ let isMirror = localStorage.getItem("isMirror");
 let deg = parseInt(localStorage.getItem("deg")) ?? 0;
 if (isNaN(deg)) deg = 0;
 let shape = localStorage.getItem("shape") ?? "Circle";
+let aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
+let aspectRatios = ['None','1:1', '3:4', '4:3', '16:9']
 var shapes = [
   {
     label: "Square",
@@ -23,6 +25,160 @@ var shapes = [
     val: "50%",
   },
 ];
+
+let contextMenuItems = [
+  {
+    type: "normal",
+    label: "YouCam",
+    click: function () {
+      nw.Window.get().show();
+    },
+  },
+  {
+    type: "normal",
+    label: "Cam source",
+    submenu: ()=>{
+      let menu = new nw.Menu()
+      if (!navigator.mediaDevices?.enumerateDevices) {
+        console.log("enumerateDevices() not supported.");
+      } else {
+        navigator.mediaDevices
+          .enumerateDevices()
+          .then((devices) => {
+            devices.forEach((device) => {
+              if (device.kind === "videoinput") {
+                menu.append(
+                  new nw.MenuItem({
+                    label: device.label,
+                    click: function () {
+                      setVideo(device.deviceId);
+                    },
+                  })
+                );
+              }
+            });
+          })
+          .catch((err) => {
+            console.error(`${err.name}: ${err.message}`);
+          });
+      }
+      return menu
+    }
+  },
+  {
+    type: "normal",
+    label: "Shape",
+    submenu: shapes.map((shapeObj) =>({
+        type: "normal",
+        label: shapeObj.label,
+        click: function () {
+          shape = shapeObj.label;
+          localStorage.setItem("shape", shapeObj.label);
+          updateVars();
+        }
+      })
+    ),
+  },
+  {
+    type: "normal",
+    label: "Aspect Ratio",
+    submenu: aspectRatios.map(ratio=>{
+      return {
+        type: "normal",
+        label: ratio,
+        click: function () {
+          localStorage.setItem('aspectRatio', ratio);
+          updateAspectRatio();
+        },
+      }
+    }),
+  },
+  {
+    type: "normal",
+    label: "Rotate",
+    submenu: [{
+      type: "normal",
+      label: "Rotate CW",
+      click: function () {
+        rotate(-90);
+      },
+    },
+    {
+      type: "normal",
+      label: "Rotate CCW",
+      click: function () {
+        rotate(90);
+      },
+    }]
+  },
+  {
+    type: "checkbox",
+    label: "Mirror",
+    checked: isMirror,
+    click: function () {
+      isMirror = !isMirror;
+      localStorage.setItem("isMirror", isMirror);
+      updateVars();
+    }
+  },
+  {
+    type: "separator",
+  },
+  {
+    type: "normal",
+    label: "Exit",
+    click: function () {
+      nw.Window.get().close();
+    }
+  }
+]
+
+function createMenuItem(options){
+  try {
+    if(Object.hasOwn(options,'submenu')){
+      const { submenu } = options
+      let menu = new nw.Menu()
+      if(typeof submenu == 'function'){
+        menu = submenu()
+      }
+      else{
+        options.submenu.forEach((item)=>{
+          menu.append(createMenuItem(item))
+        })
+      }
+      options.submenu = menu
+    }
+    let menuItem = nw.MenuItem(options)
+    return menuItem
+  } catch (error) {
+    alert('ERROR: '+ error)
+  }
+}
+
+var menu = new nw.Menu();
+
+try {
+  contextMenuItems
+  .map((item)=>createMenuItem(item))
+  .forEach(item=>menu.append(item))
+
+  tray.menu = menu;
+} catch (error) {
+  alert('ERROR: '+ error)
+}
+
+async function rotate(rotateBy = 90) {
+  deg = (deg + rotateBy) % 360; // [0, 90, 180, 270]
+  if(Math.abs(deg % 90) > 0){
+    deg -= deg % 90; // etc. 182 -> 180. get rid of excess value
+  }
+  localStorage.setItem("deg", deg);
+  updateVars();
+  if(aspectRatio != 'None'){
+    await localStorage.setItem('aspectRatio', aspectRatio.split(':').reverse().join(':'))
+  }
+  win.resizeTo(win.height, win.width);
+}
 
 function updateVars() {
   let docStyle = document.documentElement.style;
@@ -64,122 +220,6 @@ function setVideo(id) {
   );
 }
 setVideo();
-var submenu = new nw.Menu();
-if (!navigator.mediaDevices?.enumerateDevices) {
-  console.log("enumerateDevices() not supported.");
-} else {
-  navigator.mediaDevices
-    .enumerateDevices()
-    .then((devices) => {
-      devices.forEach((device) => {
-        if (device.kind === "videoinput") {
-          submenu.append(
-            new nw.MenuItem({
-              label: device.label,
-              click: function () {
-                setVideo(device.deviceId);
-              },
-            })
-          );
-        }
-      });
-    })
-    .catch((err) => {
-      console.error(`${err.name}: ${err.message}`);
-    });
-}
-
-var shapeSubMenu = new nw.Menu();
-shapes.map((shapeObj) =>
-  shapeSubMenu.append(
-    nw.MenuItem({
-      type: "normal",
-      label: shapeObj.label,
-      click: function () {
-        shape = shapeObj.label;
-        localStorage.setItem("shape", shapeObj.label);
-        updateVars();
-      },
-    })
-  )
-);
-
-function rotate(rotateBy = 90) {
-  deg += rotateBy * (isMirror ? 1 : -1);
-  localStorage.setItem("deg", deg);
-  updateVars();
-}
-
-var rotateSubMenu = new nw.Menu();
-rotateSubMenu.append(
-  nw.MenuItem({
-    type: "normal",
-    label: "Rotate CW",
-    click: function () {
-      rotate(-90);
-    },
-  })
-);
-rotateSubMenu.append(
-  nw.MenuItem({
-    type: "normal",
-    label: "Rotate CCW",
-    click: function () {
-      rotate(90);
-    },
-  })
-);
-
-var menu = new nw.Menu();
-let menuItems = [
-  {
-    type: "normal",
-    label: "YouCam",
-    click: function () {
-      nw.Window.get().show();
-    },
-  },
-  {
-    type: "normal",
-    label: "Cam source",
-    submenu,
-  },
-  {
-    type: "normal",
-    label: "Shape",
-    submenu: shapeSubMenu,
-  },
-  {
-    type: "normal",
-    label: "Rotate",
-    submenu: rotateSubMenu,
-  },
-  {
-    type: "checkbox",
-    label: "Mirror",
-    checked: isMirror,
-    click: function () {
-      isMirror = !isMirror;
-      localStorage.setItem("isMirror", isMirror);
-      updateVars();
-    },
-  },
-  {
-    type: "separator",
-  },
-  {
-    type: "normal",
-    label: "Exit",
-    click: function () {
-      nw.Window.get().close();
-    },
-  },
-];
-
-menuItems.forEach(function (item) {
-  menu.append(new nw.MenuItem(item));
-});
-tray.menu = menu;
 
 if (process.platform == "darwin") {
   var menu = new gui.Menu({ type: "menubar" });
@@ -213,3 +253,28 @@ document.body.addEventListener("mousedown", function (ev) {
 document.body.addEventListener("mouseup", function (ev) {
   window.removeEventListener("mousemove", mouseMove);
 });
+
+function updateAspectRatio(){
+  let docStyle = document.documentElement.style;
+  aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
+  if(aspectRatio!='None'){
+    let [vertical, horizontal] = aspectRatio.split(':').map((ratio) => parseInt(ratio));
+    win.height = Math.round((win.width / vertical) * horizontal);
+  }
+
+  docStyle.setProperty("--width", ( [90, 270].includes(Math.abs(deg)) ? win.height : win.width) + 'px');
+  docStyle.setProperty("--height", ( [90, 270].includes(Math.abs(deg)) ? win.width : win.height) + 'px');
+}
+updateAspectRatio()
+
+win.on('resize', ()=>{
+  debounceFn(()=>{
+    updateAspectRatio()
+  }, 200)
+})
+
+let debounce
+function debounceFn(action, ms){
+  clearTimeout(debounce);
+  debounce = setTimeout(() => action(), ms);
+}
