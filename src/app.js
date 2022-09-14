@@ -10,7 +10,7 @@ let deg = parseInt(localStorage.getItem("deg")) ?? 0;
 if (isNaN(deg)) deg = 0;
 let shape = localStorage.getItem("shape") ?? "Circle";
 let aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
-let aspectRatios = ['None','1:1', '3:4', '4:3', '16:9']
+let aspectRatios = ["None", "1:1", "3:4", "4:3", "16:9"];
 var shapes = [
   {
     label: "Square",
@@ -37,8 +37,8 @@ let contextMenuItems = [
   {
     type: "normal",
     label: "Cam source",
-    submenu: ()=>{
-      let menu = new nw.Menu()
+    submenu: () => {
+      let menu = new nw.Menu();
       if (!navigator.mediaDevices?.enumerateDevices) {
         console.log("enumerateDevices() not supported.");
       } else {
@@ -62,54 +62,55 @@ let contextMenuItems = [
             console.error(`${err.name}: ${err.message}`);
           });
       }
-      return menu
-    }
+      return menu;
+    },
   },
   {
     type: "normal",
     label: "Shape",
-    submenu: shapes.map((shapeObj) =>({
-        type: "normal",
-        label: shapeObj.label,
-        click: function () {
-          shape = shapeObj.label;
-          localStorage.setItem("shape", shapeObj.label);
-          updateVars();
-        }
-      })
-    ),
+    submenu: shapes.map((shapeObj) => ({
+      type: "normal",
+      label: shapeObj.label,
+      click: function () {
+        shape = shapeObj.label;
+        localStorage.setItem("shape", shapeObj.label);
+        updateVars();
+      },
+    })),
   },
   {
     type: "normal",
     label: "Aspect Ratio",
-    submenu: aspectRatios.map(ratio=>{
+    submenu: aspectRatios.map((ratio) => {
       return {
         type: "normal",
         label: ratio,
         click: function () {
-          localStorage.setItem('aspectRatio', ratio);
+          localStorage.setItem("aspectRatio", ratio);
           updateAspectRatio();
         },
-      }
+      };
     }),
   },
   {
     type: "normal",
     label: "Rotate",
-    submenu: [{
-      type: "normal",
-      label: "Rotate CW",
-      click: function () {
-        rotate(-90);
+    submenu: [
+      {
+        type: "normal",
+        label: "Rotate CW",
+        click: function () {
+          rotate(-90);
+        },
       },
-    },
-    {
-      type: "normal",
-      label: "Rotate CCW",
-      click: function () {
-        rotate(90);
+      {
+        type: "normal",
+        label: "Rotate CCW",
+        click: function () {
+          rotate(90);
+        },
       },
-    }]
+    ],
   },
   {
     type: "checkbox",
@@ -119,7 +120,7 @@ let contextMenuItems = [
       isMirror = !isMirror;
       localStorage.setItem("isMirror", isMirror);
       updateVars();
-    }
+    },
   },
   {
     type: "separator",
@@ -129,29 +130,28 @@ let contextMenuItems = [
     label: "Exit",
     click: function () {
       nw.Window.get().close();
-    }
-  }
-]
+    },
+  },
+];
 
-function createMenuItem(options){
+function createMenuItem(options) {
   try {
-    if(Object.hasOwn(options,'submenu')){
-      const { submenu } = options
-      let menu = new nw.Menu()
-      if(typeof submenu == 'function'){
-        menu = submenu()
+    if (Object.hasOwn(options, "submenu")) {
+      const { submenu } = options;
+      let menu = new nw.Menu();
+      if (typeof submenu == "function") {
+        menu = submenu();
+      } else {
+        options.submenu.forEach((item) => {
+          menu.append(createMenuItem(item));
+        });
       }
-      else{
-        options.submenu.forEach((item)=>{
-          menu.append(createMenuItem(item))
-        })
-      }
-      options.submenu = menu
+      options.submenu = menu;
     }
-    let menuItem = nw.MenuItem(options)
-    return menuItem
+    let menuItem = nw.MenuItem(options);
+    return menuItem;
   } catch (error) {
-    alert('ERROR: '+ error)
+    alert("ERROR: " + error);
   }
 }
 
@@ -159,23 +159,26 @@ var menu = new nw.Menu();
 
 try {
   contextMenuItems
-  .map((item)=>createMenuItem(item))
-  .forEach(item=>menu.append(item))
+    .map((item) => createMenuItem(item))
+    .forEach((item) => menu.append(item));
 
   tray.menu = menu;
 } catch (error) {
-  alert('ERROR: '+ error)
+  alert("ERROR: " + error);
 }
 
 async function rotate(rotateBy = 90) {
   deg = (deg + rotateBy) % 360; // [0, 90, 180, 270]
-  if(Math.abs(deg % 90) > 0){
+  if (Math.abs(deg % 90) > 0) {
     deg -= deg % 90; // etc. 182 -> 180. get rid of excess value
   }
   localStorage.setItem("deg", deg);
   updateVars();
-  if(aspectRatio != 'None'){
-    await localStorage.setItem('aspectRatio', aspectRatio.split(':').reverse().join(':'))
+  if (aspectRatio != "None") {
+    await localStorage.setItem(
+      "aspectRatio",
+      aspectRatio.split(":").reverse().join(":")
+    );
   }
   win.resizeTo(win.height, win.width);
 }
@@ -254,27 +257,35 @@ document.body.addEventListener("mouseup", function (ev) {
   window.removeEventListener("mousemove", mouseMove);
 });
 
-function updateAspectRatio(){
+function updateAspectRatio() {
   let docStyle = document.documentElement.style;
   aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
-  if(aspectRatio!='None'){
-    let [vertical, horizontal] = aspectRatio.split(':').map((ratio) => parseInt(ratio));
+  if (aspectRatio != "None") {
+    let [vertical, horizontal] = aspectRatio
+      .split(":")
+      .map((ratio) => parseInt(ratio));
     win.height = Math.round((win.width / vertical) * horizontal);
   }
 
-  docStyle.setProperty("--width", ( [90, 270].includes(Math.abs(deg)) ? win.height : win.width) + 'px');
-  docStyle.setProperty("--height", ( [90, 270].includes(Math.abs(deg)) ? win.width : win.height) + 'px');
+  docStyle.setProperty(
+    "--width",
+    ([90, 270].includes(Math.abs(deg)) ? win.height : win.width) + "px"
+  );
+  docStyle.setProperty(
+    "--height",
+    ([90, 270].includes(Math.abs(deg)) ? win.width : win.height) + "px"
+  );
 }
-updateAspectRatio()
+updateAspectRatio();
 
-win.on('resize', ()=>{
-  debounceFn(()=>{
-    updateAspectRatio()
-  }, 200)
-})
+win.on("resize", () => {
+  debounceFn(() => {
+    updateAspectRatio();
+  }, 200);
+});
 
-let debounce
-function debounceFn(action, ms){
+let debounce;
+function debounceFn(action, ms) {
   clearTimeout(debounce);
   debounce = setTimeout(() => action(), ms);
 }

@@ -8,23 +8,23 @@
 
 html,
 body,
-video{
+video {
   width: 100%;
   height: 100%;
   margin: 0;
-  transition: all .5s;
+  transition: all 0.5s;
   overflow: hidden;
 }
 
-body{
+body {
   display: flex;
   position: relative;
   border-radius: var(--radius);
 }
 
-body:active{
+body:active {
   box-shadow: inset 0px 0px 20px 2px white;
-  transition-delay: .3s;
+  transition-delay: 0.3s;
   cursor: move;
 }
 
@@ -39,5 +39,5 @@ video {
   border-radius: var(--radius);
   object-fit: cover;
   object-position: bottom;
-  transform: translate(-50%, -50%) scaleX(var(--scaleX))  rotate(var(--rotate));
+  transform: translate(-50%, -50%) scaleX(var(--scaleX)) rotate(var(--rotate));
 }
