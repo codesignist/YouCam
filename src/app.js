@@ -9,6 +9,8 @@ let isMirror = localStorage.getItem("isMirror");
 let deg = parseInt(localStorage.getItem("deg")) ?? 0;
 if (isNaN(deg)) deg = 0;
 let shape = localStorage.getItem("shape") ?? "Circle";
+let aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
+let aspectRatios = ['None','1:1', '3:4', '4:3', '16:9']
 var shapes = [
   {
     label: "Square",
@@ -76,6 +78,20 @@ let contextMenuItems = [
         }
       })
     ),
+  },
+  {
+    type: "normal",
+    label: "Aspect Ratio",
+    submenu: aspectRatios.map(ratio=>{
+      return {
+        type: "normal",
+        label: ratio,
+        click: function () {
+          localStorage.setItem('aspectRatio', ratio);
+          updateAspectRatio();
+        },
+      }
+    }),
   },
   {
     type: "normal",
@@ -152,9 +168,16 @@ try {
 }
 
 async function rotate(rotateBy = 90) {
-  deg = (deg + rotateBy) % 360;
+  deg = (deg + rotateBy) % 360; // [0, 90, 180, 270]
+  if(Math.abs(deg % 90) > 0){
+    deg -= deg % 90; // etc. 182 -> 180. get rid of excess value
+  }
   localStorage.setItem("deg", deg);
   updateVars();
+  if(aspectRatio != 'None'){
+    await localStorage.setItem('aspectRatio', aspectRatio.split(':').reverse().join(':'))
+  }
+  win.resizeTo(win.height, win.width);
 }
 
 function updateVars() {
@@ -230,3 +253,28 @@ document.body.addEventListener("mousedown", function (ev) {
 document.body.addEventListener("mouseup", function (ev) {
   window.removeEventListener("mousemove", mouseMove);
 });
+
+function updateAspectRatio(){
+  let docStyle = document.documentElement.style;
+  aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
+  if(aspectRatio!='None'){
+    let [vertical, horizontal] = aspectRatio.split(':').map((ratio) => parseInt(ratio));
+    win.height = Math.round((win.width / vertical) * horizontal);
+  }
+
+  docStyle.setProperty("--width", ( [90, 270].includes(Math.abs(deg)) ? win.height : win.width) + 'px');
+  docStyle.setProperty("--height", ( [90, 270].includes(Math.abs(deg)) ? win.width : win.height) + 'px');
+}
+updateAspectRatio()
+
+win.on('resize', ()=>{
+  debounceFn(()=>{
+    updateAspectRatio()
+  }, 200)
+})
+
+let debounce
+function debounceFn(action, ms){
+  clearTimeout(debounce);
+  debounce = setTimeout(() => action(), ms);
+}
