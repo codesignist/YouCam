@@ -26,12 +26,12 @@
   "author": "codesignist",
   "license": "ISC",
   "dependencies": {
-    "nw": "^0.67.1"
+    "nw": "^0.68.1"
   },
   "devDependencies": {
     "nwjs-builder-phoenix": "^1.15.0"
   },
   "build": {
-    "nwVersion": "0.67.1"
+    "nwVersion": "0.68.1"
   }
 }
