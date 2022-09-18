@@ -1,17 +1,21 @@
-var gui = require("nw.gui");
+let gui = require("nw.gui");
 let tray = new nw.Tray({
   title: "YouCam",
   tooltip: "YouCam",
   icon: "assets/icon-tray.png",
 });
 
+var win = gui.Window.get();
+win.show();
+
 let isMirror = localStorage.getItem("isMirror");
 let deg = parseInt(localStorage.getItem("deg")) ?? 0;
 if (isNaN(deg)) deg = 0;
 let shape = localStorage.getItem("shape") ?? "Circle";
+let dimensions = ["240x240", "360x360", "480x480"];
 let aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
 let aspectRatios = ["None", "1:1", "3:4", "4:3", "16:9"];
-var shapes = [
+let shapes = [
   {
     label: "Square",
     val: "0.1px",
@@ -77,6 +81,21 @@ let contextMenuItems = [
         updateVars();
       },
     })),
+  },
+  {
+    type: "normal",
+    label: "Dimensions",
+    submenu: dimensions.map((dim) => {
+      return {
+        type: "normal",
+        label: dim,
+        click: function () {
+          let dimW = parseInt(dim.split("x"));
+          win.width = dimW;
+          win.height = dimW;
+        },
+      };
+    }),
   },
   {
     type: "normal",
@@ -229,9 +248,6 @@ if (process.platform == "darwin") {
   menu.createMacBuiltin && menu.createMacBuiltin(window.document.title);
   gui.Window.get().menu = menu;
 }
-
-var win = gui.Window.get();
-win.show();
 
 document.body.addEventListener(
   "contextmenu",
