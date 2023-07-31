@@ -41,3 +41,10 @@ video {
   object-position: bottom;
   transform: translate(-50%, -50%) scaleX(var(--scaleX)) rotate(var(--rotate));
 }
+
+video.hexagon {
+  -webkit-mask-image: url(../assets/hexagon.svg);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: cover;
+  border-radius: none;
+}

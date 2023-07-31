@@ -28,6 +28,10 @@ let shapes = [
     label: "Circle",
     val: "50%",
   },
+  {
+    label: "Hexagon",
+    val: "hexagon",
+  },
 ];
 
 let contextMenuItems = [
@@ -203,11 +207,17 @@ function rotate(rotateBy = 90) {
 }
 
 function updateVars() {
-  let docStyle = document.documentElement.style;
+  const docStyle = document.documentElement.style;
+  const video = document.getElementById("camera");
   docStyle.setProperty("--scaleX", isMirror ? -1 : 1);
   docStyle.setProperty("--rotate", `${deg}deg`);
-  let shapeVal = shapes.find((o) => o.label === shape).val ?? "50%";
-  docStyle.setProperty("--radius", shapeVal);
+  if (shape === "Hexagon") {
+    video.classList.add("hexagon");
+  } else {
+    video.classList.remove("hexagon");
+    let shapeVal = shapes.find((o) => o.label === shape).val ?? "50%";
+    docStyle.setProperty("--radius", shapeVal);
+  }
 }
 
 updateVars();
