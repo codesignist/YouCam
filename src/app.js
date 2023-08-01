@@ -11,7 +11,7 @@ win.show();
 let isMirror = localStorage.getItem("isMirror");
 let deg = parseInt(localStorage.getItem("deg")) ?? 0;
 if (isNaN(deg)) deg = 0;
-let shape = localStorage.getItem("shape") ?? "Circle";
+let shape = localStorage.getItem("shape") ?? "Hexagon";
 let dimensions = ["240x240", "360x360", "480x480"];
 let aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
 let aspectRatios = ["None", "1:1", "3:4", "4:3", "16:9"];
@@ -30,7 +30,7 @@ let shapes = [
   },
   {
     label: "Hexagon",
-    val: "hexagon",
+    val: "50%",
   },
 ];
 
@@ -208,15 +208,15 @@ function rotate(rotateBy = 90) {
 
 function updateVars() {
   const docStyle = document.documentElement.style;
-  const video = document.getElementById("camera");
+  const body = document.getElementsByTagName("BODY")[0];
   docStyle.setProperty("--scaleX", isMirror ? -1 : 1);
   docStyle.setProperty("--rotate", `${deg}deg`);
+  let shapeVal = shapes.find((o) => o.label === shape).val ?? "50%";
+  docStyle.setProperty("--radius", shapeVal);
   if (shape === "Hexagon") {
-    video.classList.add("hexagon");
+    body.classList.add("hexagon");
   } else {
-    video.classList.remove("hexagon");
-    let shapeVal = shapes.find((o) => o.label === shape).val ?? "50%";
-    docStyle.setProperty("--radius", shapeVal);
+    body.classList.remove("hexagon");
   }
 }
 

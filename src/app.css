@@ -42,7 +42,7 @@ video {
   transform: translate(-50%, -50%) scaleX(var(--scaleX)) rotate(var(--rotate));
 }
 
-video.hexagon {
+body.hexagon video {
   -webkit-mask-image: url(../assets/hexagon.svg);
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-size: cover;
