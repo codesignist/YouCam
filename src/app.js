@@ -9,10 +9,11 @@ var win = gui.Window.get();
 win.show();
 
 let isMirror = localStorage.getItem("isMirror") === "true";
-let deg = parseInt(localStorage.getItem("deg")) ?? 0;
+let deg = parseInt(localStorage.getItem("deg"), 10);
 if (isNaN(deg)) deg = 0;
 let shape = localStorage.getItem("shape") ?? "Hexagon";
 let dimensions = ["240x240", "360x360", "480x480"];
+let currentDim;
 let aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
 let aspectRatios = ["None", "1:1", "3:4", "4:3", "16:9"];
 let shapes = [
@@ -34,142 +35,148 @@ let shapes = [
   },
 ];
 
-let contextMenuItems = [
-  {
-    type: "normal",
-    label: "YouCam",
-    click: function () {
-      nw.Window.get().show();
-    },
-  },
-  {
-    type: "normal",
-    label: "Cam source",
-    submenu: () => {
-      let menu = new nw.Menu();
-      if (!navigator.mediaDevices?.enumerateDevices) {
-        console.log("enumerateDevices() not supported.");
-      } else {
-        navigator.mediaDevices
-          .enumerateDevices()
-          .then((devices) => {
-            devices.forEach((device) => {
-              if (device.kind === "videoinput") {
-                menu.append(
-                  new nw.MenuItem({
-                    label: device.label,
-                    click: function () {
-                      setVideo(device.deviceId);
-                    },
-                  })
-                );
-              }
-            });
-          })
-          .catch((err) => {
-            console.error(`${err.name}: ${err.message}`);
-          });
-      }
-      return menu;
-    },
-  },
-  {
-    type: "normal",
-    label: "Shape",
-    submenu: shapes.map((shapeObj) => ({
+function buildContextMenuItems() {
+  return [
+    {
       type: "normal",
-      label: shapeObj.label,
+      label: "YouCam",
       click: function () {
-        shape = shapeObj.label;
-        localStorage.setItem("shape", shapeObj.label);
-        updateVars();
+        nw.Window.get().show();
       },
-    })),
-  },
-  {
-    type: "normal",
-    label: "Dimensions",
-    submenu: dimensions.map((dim) => {
-      return {
-        type: "normal",
-        label: dim,
+    },
+    {
+      type: "normal",
+      label: "Cam source",
+      submenu: () => {
+        let camMenu = new nw.Menu();
+        if (!navigator.mediaDevices?.enumerateDevices) {
+          console.log("enumerateDevices() not supported.");
+        } else {
+          navigator.mediaDevices
+            .enumerateDevices()
+            .then((devices) => {
+              devices.forEach((device) => {
+                if (device.kind === "videoinput") {
+                  camMenu.append(
+                    new nw.MenuItem({
+                      label: device.label,
+                      click: function () {
+                        setVideo(device.deviceId);
+                      },
+                    })
+                  );
+                }
+              });
+            })
+            .catch((err) => {
+              console.error(`${err.name}: ${err.message}`);
+            });
+        }
+        return camMenu;
+      },
+    },
+    {
+      type: "normal",
+      label: "Shape",
+      submenu: shapes.map((shapeObj) => ({
+        type: "checkbox",
+        label: shapeObj.label,
+        checked: shape === shapeObj.label,
         click: function () {
-          let dimW = parseInt(dim.split("x"));
+          shape = shapeObj.label;
+          localStorage.setItem("shape", shape);
+          updateVars();
+          rebuildMenu();
+        },
+      })),
+    },
+    {
+      type: "normal",
+      label: "Dimensions",
+      submenu: dimensions.map((dim) => ({
+        type: "checkbox",
+        label: dim,
+        checked: currentDim === dim,
+        click: function () {
+          let dimW = parseInt(dim.split("x")[0], 10);
           win.width = dimW;
           win.height = dimW;
+          currentDim = dim;
+          rebuildMenu();
         },
-      };
-    }),
-  },
-  {
-    type: "normal",
-    label: "Aspect Ratio",
-    submenu: aspectRatios.map((ratio) => {
-      return {
-        type: "normal",
+      })),
+    },
+    {
+      type: "normal",
+      label: "Aspect Ratio",
+      submenu: aspectRatios.map((ratio) => ({
+        type: "checkbox",
         label: ratio,
+        checked: aspectRatio === ratio,
         click: function () {
           localStorage.setItem("aspectRatio", ratio);
           updateAspectRatio();
+          rebuildMenu();
         },
-      };
-    }),
-  },
-  {
-    type: "normal",
-    label: "Rotate",
-    submenu: [
-      {
-        type: "normal",
-        label: "Rotate CW",
-        click: function () {
-          rotate(-90);
-        },
-      },
-      {
-        type: "normal",
-        label: "Rotate CCW",
-        click: function () {
-          rotate(90);
-        },
-      },
-    ],
-  },
-  {
-    type: "checkbox",
-    label: "Mirror",
-    checked: isMirror,
-    click: function () {
-      isMirror = !isMirror;
-      localStorage.setItem("isMirror", isMirror);
-      updateVars();
+      })),
     },
-  },
-  {
-    type: "separator",
-  },
-  {
-    type: "normal",
-    label: "Exit",
-    click: function () {
-      nw.Window.get().close();
+    {
+      type: "normal",
+      label: "Rotate",
+      submenu: [
+        {
+          type: "normal",
+          label: "Rotate CW",
+          click: function () {
+            rotate(90);
+          },
+        },
+        {
+          type: "normal",
+          label: "Rotate CCW",
+          click: function () {
+            rotate(-90);
+          },
+        },
+      ],
     },
-  },
-];
+    {
+      type: "checkbox",
+      label: "Mirror",
+      checked: isMirror,
+      click: function () {
+        isMirror = !isMirror;
+        localStorage.setItem("isMirror", isMirror);
+        updateVars();
+        rebuildMenu();
+      },
+    },
+    {
+      type: "separator",
+    },
+    {
+      type: "normal",
+      label: "Exit",
+      click: function () {
+        nw.Window.get().close();
+      },
+    },
+  ];
+}
 
 function createMenuItem(options) {
   try {
     if (Object.hasOwn(options, "submenu")) {
       const { submenu } = options;
-      let menu = new nw.Menu();
+      let subMenu = new nw.Menu();
       if (typeof submenu == "function") {
-        menu = submenu();
+        subMenu = submenu();
       } else {
         options.submenu.forEach((item) => {
-          menu.append(createMenuItem(item));
+          subMenu.append(createMenuItem(item));
         });
       }
-      options.submenu = menu;
+      options.submenu = subMenu;
     }
     let menuItem = nw.MenuItem(options);
     return menuItem;
@@ -178,17 +185,19 @@ function createMenuItem(options) {
   }
 }
 
-var menu = new nw.Menu();
-
-try {
-  contextMenuItems
-    .map((item) => createMenuItem(item))
-    .forEach((item) => menu.append(item));
-
-  tray.menu = menu;
-} catch (error) {
-  alert("ERROR: " + error);
+var menu;
+function rebuildMenu() {
+  try {
+    menu = new nw.Menu();
+    buildContextMenuItems()
+      .map((item) => createMenuItem(item))
+      .forEach((item) => menu.append(item));
+    tray.menu = menu;
+  } catch (error) {
+    alert("ERROR: " + error);
+  }
 }
+rebuildMenu();
 
 function rotate(rotateBy = 90) {
   deg = (deg + rotateBy) % 360; // [0, 90, 180, 270]
@@ -198,12 +207,12 @@ function rotate(rotateBy = 90) {
   localStorage.setItem("deg", deg);
   updateVars();
   if (aspectRatio != "None") {
-    localStorage.setItem(
-      "aspectRatio",
-      aspectRatio.split(":").reverse().join(":")
-    );
+    aspectRatio = aspectRatio.split(":").reverse().join(":");
+    localStorage.setItem("aspectRatio", aspectRatio);
   }
   win.resizeTo(win.height, win.width);
+  updateAspectRatio();
+  rebuildMenu();
 }
 
 function updateVars() {
@@ -254,9 +263,9 @@ function setVideo(id) {
 setVideo();
 
 if (process.platform == "darwin") {
-  var menu = new gui.Menu({ type: "menubar" });
-  menu.createMacBuiltin && menu.createMacBuiltin(window.document.title);
-  gui.Window.get().menu = menu;
+  let macMenu = new gui.Menu({ type: "menubar" });
+  macMenu.createMacBuiltin && macMenu.createMacBuiltin(window.document.title);
+  gui.Window.get().menu = macMenu;
 }
 
 document.body.addEventListener(
