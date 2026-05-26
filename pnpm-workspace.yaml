@@ -1,0 +1,5 @@
+allowBuilds:
+  nw: true
+  nw-builder: true
+minimumReleaseAgeExclude:
+  - nw-builder@4.17.11

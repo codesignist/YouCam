@@ -20,17 +20,23 @@
   },
   "scripts": {
     "start": "nw .",
-    "build": "build --tasks win-x64 --mirror https://dl.nwjs.io/ ."
+    "build": "nwbuild ."
   },
   "author": "codesignist",
   "license": "ISC",
+  "packageManager": "pnpm@11.2.2",
   "dependencies": {
-    "nw": "^0.78.1"
+    "nw": "^0.111.3"
   },
   "devDependencies": {
-    "nwjs-builder-phoenix": "^1.15.0"
+    "nw-builder": "^4.17.11"
   },
-  "build": {
-    "nwVersion": "0.73.0"
+  "nwbuild": {
+    "mode": "build",
+    "version": "0.111.3",
+    "flavor": "normal",
+    "platform": "win",
+    "arch": "x64",
+    "outDir": "./dist"
   }
 }

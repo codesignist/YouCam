@@ -12,24 +12,31 @@ OBS studio'da kamera kaydı oluşturulurken ekranda kendinizi göremiyorsunuz ma
 
 ### Kurulum
 
+Bağımlılıklar (NW.js binary dahil):
+
+```
+pnpm install
+```
+
 Doğrudan çalıştırmak için:
 
 ```
-npm run start
+pnpm start
 ```
 
 Paketlemek için:
 
 ```
-npm run build
+pnpm build
 ```
 
-Sadece win64 olarak paket üretilebiliyor. Diğer paketler için ayarlama yapmalısınız.
-Daha fazla bilgi için; [NW Builder](https://docs.nwjs.io/en/latest/For%20Developers/Building%20NW.js/)
+Varsayılan olarak win64 paketi `./dist` altına üretilir. Platform/mimari için `package.json` içindeki `nwbuild` bölümünü düzenleyin.
+Daha fazla bilgi için; [nw-builder](https://github.com/nwutils/nw-builder)
 
 ## Kullanılan Paket/ler
 
-- [NW](https://nwjs.io/) - Node Webkit
+- [NW.js](https://nwjs.io/) — masaüstü çalışma ortamı
+- [nw-builder](https://github.com/nwutils/nw-builder) — paketleyici
 
 ## Klavye Kısayolları
 

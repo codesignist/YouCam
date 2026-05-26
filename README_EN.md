@@ -12,24 +12,31 @@ Unfortunately in OBS studio you cant see yourself while having your camera recor
 
 ### Install
 
+Install dependencies (downloads the NW.js binary):
+
+```
+pnpm install
+```
+
 To run the app:
 
 ```
-npm run start
+pnpm start
 ```
 
 To package the app:
 
 ```
-npm run build
+pnpm build
 ```
 
-Packages can only be made with win64. For other packages you must configure.
-For more info; [NW Builder](https://docs.nwjs.io/en/latest/For%20Developers/Building%20NW.js/)
+By default a win64 package is written to `./dist`. To target other platforms/architectures, edit the `nwbuild` section in `package.json`.
+For more info; [nw-builder](https://github.com/nwutils/nw-builder)
 
 ## Used Package(s)
 
-- [NW](https://nwjs.io/) - Node Webkit
+- [NW.js](https://nwjs.io/) — desktop runtime
+- [nw-builder](https://github.com/nwutils/nw-builder) — packager
 
 ## Keyboard Shortcuts
 
