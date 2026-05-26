@@ -31,12 +31,24 @@ For more info; [NW Builder](https://docs.nwjs.io/en/latest/For%20Developers/Buil
 
 - [NW](https://nwjs.io/) - Node Webkit
 
+## Keyboard Shortcuts
+
+| Key | Action |
+|---|---|
+| `M` | Toggle mirror |
+| `R` / `Shift+R` | Rotate clockwise / counter-clockwise |
+| `T` | Toggle always on top |
+| `Q` / `Esc` | Exit |
+| Right click | Context menu |
+
 ## Todo
 
 - [x] Size setups
 - [x] Curved sides and other shapes
 - [x] Mirror feature
 - [x] English ReadMe.md
+- [x] Keyboard shortcuts
+- [x] Remember selected camera
 
 ## Contributing
 

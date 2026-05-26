@@ -8,7 +8,7 @@ YouTube yayıncıları için geliştirilmiş masaüstü webcam uygulaması.
 
 ### Motivasyon
 
-OBS studio'da kamera kaydı oluşturulurken ekranda kendinizi göremiyorsunuz malesef. Bunun için ayrıca bir yazılıma ya da referans monitöre ihtiyacınız var. Bu şekilde minik, pratik bir yazılımın olmayışı ve NW.js ile deneme çalışması yapmak için bu uygulama oluşturuldu.
+OBS studio'da kamera kaydı oluşturulurken ekranda kendinizi göremiyorsunuz maalesef. Bunun için ayrıca bir yazılıma ya da referans monitöre ihtiyacınız var. Bu şekilde minik, pratik bir yazılımın olmayışı ve NW.js ile deneme çalışması yapmak için bu uygulama oluşturuldu.
 
 ### Kurulum
 
@@ -31,12 +31,24 @@ Daha fazla bilgi için; [NW Builder](https://docs.nwjs.io/en/latest/For%20Develo
 
 - [NW](https://nwjs.io/) - Node Webkit
 
+## Klavye Kısayolları
+
+| Tuş | İşlev |
+|---|---|
+| `M` | Ayna (mirror) aç/kapa |
+| `R` / `Shift+R` | Saat yönünde / tersine döndür |
+| `T` | Always on top aç/kapa |
+| `Q` / `Esc` | Çıkış |
+| Sağ tık | Bağlam menüsü |
+
 ## Yapılacaklar
 
 - [x] Ölçü çeşitleri
 - [x] Keskin ve yumuşak kenarlı farklı şekiller
 - [x] Ayna (mirror) özelliği
 - [x] İngilizce ReadMe.md
+- [x] Klavye kısayolları
+- [x] Seçili kameranın hatırlanması
 
 ## Katılım
 
