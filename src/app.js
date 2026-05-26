@@ -9,6 +9,8 @@ var win = gui.Window.get();
 win.show();
 
 let isMirror = localStorage.getItem("isMirror") === "true";
+let alwaysOnTop = localStorage.getItem("alwaysOnTop") !== "false";
+win.setAlwaysOnTop(alwaysOnTop);
 let deg = parseInt(localStorage.getItem("deg"), 10);
 if (isNaN(deg)) deg = 0;
 let shape = localStorage.getItem("shape") ?? "Hexagon";
@@ -126,14 +128,14 @@ function buildContextMenuItems() {
       submenu: [
         {
           type: "normal",
-          label: "Rotate CW",
+          label: "Rotate CW (R)",
           click: function () {
             rotate(90);
           },
         },
         {
           type: "normal",
-          label: "Rotate CCW",
+          label: "Rotate CCW (Shift+R)",
           click: function () {
             rotate(-90);
           },
@@ -142,21 +144,22 @@ function buildContextMenuItems() {
     },
     {
       type: "checkbox",
-      label: "Mirror",
+      label: "Mirror (M)",
       checked: isMirror,
-      click: function () {
-        isMirror = !isMirror;
-        localStorage.setItem("isMirror", isMirror);
-        updateVars();
-        rebuildMenu();
-      },
+      click: toggleMirror,
+    },
+    {
+      type: "checkbox",
+      label: "Always on top (T)",
+      checked: alwaysOnTop,
+      click: toggleAlwaysOnTop,
     },
     {
       type: "separator",
     },
     {
       type: "normal",
-      label: "Exit",
+      label: "Exit (Q)",
       click: function () {
         nw.Window.get().close();
       },
@@ -231,6 +234,38 @@ function updateVars() {
 
 updateVars();
 
+function toggleMirror() {
+  isMirror = !isMirror;
+  localStorage.setItem("isMirror", isMirror);
+  updateVars();
+  rebuildMenu();
+}
+
+function toggleAlwaysOnTop() {
+  alwaysOnTop = !alwaysOnTop;
+  localStorage.setItem("alwaysOnTop", alwaysOnTop);
+  win.setAlwaysOnTop(alwaysOnTop);
+  rebuildMenu();
+}
+
+window.addEventListener("keydown", function (ev) {
+  switch (ev.key.toLowerCase()) {
+    case "m":
+      toggleMirror();
+      break;
+    case "r":
+      rotate(ev.shiftKey ? -90 : 90);
+      break;
+    case "t":
+      toggleAlwaysOnTop();
+      break;
+    case "q":
+    case "escape":
+      nw.Window.get().close();
+      break;
+  }
+});
+
 let currentStream;
 function stopMediaTracks(stream) {
   stream.getTracks().forEach((track) => {
@@ -247,6 +282,7 @@ function setVideo(id) {
     videoConstraints.facingMode = "environment";
   } else {
     videoConstraints.deviceId = { exact: id };
+    localStorage.setItem("deviceId", id);
   }
   navigator.mediaDevices
     .getUserMedia({ video: videoConstraints })
@@ -257,10 +293,15 @@ function setVideo(id) {
     })
     .catch((err) => {
       console.error(`getUserMedia: ${err.name}: ${err.message}`);
+      if (id && err.name === "OverconstrainedError") {
+        localStorage.removeItem("deviceId");
+        setVideo();
+        return;
+      }
       alert("could not connect stream");
     });
 }
-setVideo();
+setVideo(localStorage.getItem("deviceId") || undefined);
 
 if (process.platform == "darwin") {
   let macMenu = new gui.Menu({ type: "menubar" });
