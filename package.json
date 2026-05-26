@@ -20,7 +20,7 @@
   },
   "scripts": {
     "start": "nw .",
-    "build": "nwbuild ."
+    "build": "nwbuild package.json"
   },
   "author": "codesignist",
   "license": "ISC",
@@ -37,6 +37,8 @@
     "flavor": "normal",
     "platform": "win",
     "arch": "x64",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "srcDir": "src/**/* assets/**/* package.json",
+    "glob": true
   }
 }
