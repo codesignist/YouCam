@@ -46,5 +46,5 @@ body.hexagon video {
   -webkit-mask-image: url(../assets/hexagon.svg);
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-size: cover;
-  border-radius: none;
+  border-radius: 0;
 }

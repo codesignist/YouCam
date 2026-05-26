@@ -19,9 +19,8 @@
     "height": 250
   },
   "scripts": {
-    "start": "nw .src/",
-    "build": "nwbuild -p win64 .",
-    "dist": "build --tasks win-x64 --mirror https://dl.nwjs.io/ ."
+    "start": "nw .",
+    "build": "build --tasks win-x64 --mirror https://dl.nwjs.io/ ."
   },
   "author": "codesignist",
   "license": "ISC",

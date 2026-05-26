@@ -8,7 +8,7 @@ let tray = new nw.Tray({
 var win = gui.Window.get();
 win.show();
 
-let isMirror = localStorage.getItem("isMirror");
+let isMirror = localStorage.getItem("isMirror") === "true";
 let deg = parseInt(localStorage.getItem("deg")) ?? 0;
 if (isNaN(deg)) deg = 0;
 let shape = localStorage.getItem("shape") ?? "Hexagon";
@@ -239,17 +239,17 @@ function setVideo(id) {
   } else {
     videoConstraints.deviceId = { exact: id };
   }
-  navigator.webkitGetUserMedia(
-    { video: videoConstraints },
-    function (stream) {
+  navigator.mediaDevices
+    .getUserMedia({ video: videoConstraints })
+    .then((stream) => {
       const video = document.getElementById("camera");
       currentStream = stream;
       video.srcObject = stream;
-    },
-    function () {
+    })
+    .catch((err) => {
+      console.error(`getUserMedia: ${err.name}: ${err.message}`);
       alert("could not connect stream");
-    }
-  );
+    });
 }
 setVideo();
 
