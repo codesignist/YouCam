@@ -26,14 +26,14 @@
   "license": "ISC",
   "packageManager": "pnpm@11.2.2",
   "dependencies": {
-    "nw": "^0.111.3"
+    "nw": "^0.117.0"
   },
   "devDependencies": {
-    "nw-builder": "^4.17.11"
+    "nw-builder": "^4.21.4"
   },
   "nwbuild": {
     "mode": "build",
-    "version": "0.111.3",
+    "version": "0.117.0",
     "flavor": "normal",
     "platform": "win",
     "arch": "x64",
