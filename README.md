@@ -46,6 +46,7 @@ Daha fazla bilgi için; [nw-builder](https://github.com/nwutils/nw-builder)
 | `R` / `Shift+R` | Saat yönünde / tersine döndür |
 | `T` | Always on top aç/kapa |
 | `Q` / `Esc` | Çıkış |
+| Fare tekerleği | Pencereyi büyüt / küçült |
 | Sağ tık | Bağlam menüsü |
 
 ## Yapılacaklar

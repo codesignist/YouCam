@@ -46,6 +46,7 @@ For more info; [nw-builder](https://github.com/nwutils/nw-builder)
 | `R` / `Shift+R` | Rotate clockwise / counter-clockwise |
 | `T` | Toggle always on top |
 | `Q` / `Esc` | Exit |
+| Mouse wheel | Resize the window |
 | Right click | Context menu |
 
 ## Todo

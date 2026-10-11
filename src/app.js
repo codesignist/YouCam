@@ -106,8 +106,8 @@ function buildContextMenuItems() {
         return {
           type: "checkbox",
           label: dim,
-          // Derived from the window so it stays right after a manual
-          // resize and across restarts
+          // Derived from the window so it stays right after a manual or
+          // wheel resize and across restarts
           checked: win.width === dimW,
           click: function () {
             win.resizeTo(dimW, heightForWidth(dimW, dimW));
@@ -383,6 +383,52 @@ function updateAspectRatio() {
   if (height !== win.height) win.resizeTo(win.width, height);
 }
 updateAspectRatio();
+
+// Mouse wheel scales the window around its center, keeping its proportions.
+// Wheel events can arrive faster than NW.js reports the new bounds, so a
+// burst of them works from its own state instead of re-reading win.
+const MIN_SIZE = 140; // Windows won't make the window narrower than ~134px
+let zoom = null;
+const endZoom = debounced(() => {
+  zoom = null;
+}, 300);
+
+function zoomWindow(scale) {
+  zoom ??= {
+    centerX: win.x + win.width / 2,
+    centerY: win.y + win.height / 2,
+    width: win.width,
+    ratio: win.height / win.width,
+  };
+  endZoom();
+  let area = (screenAt(zoom.centerX, zoom.centerY) ?? nw.Screen.screens[0])
+    .work_area;
+  // Keep both sides between MIN_SIZE and the size of the current screen,
+  // without ever growing on zoom out (or shrinking on zoom in) when the
+  // window is already outside those limits
+  let minW = Math.min(Math.max(MIN_SIZE, MIN_SIZE / zoom.ratio), zoom.width);
+  let maxW = Math.max(
+    Math.min(area.width, area.height / zoom.ratio),
+    zoom.width
+  );
+  zoom.width = Math.min(Math.max(zoom.width * scale, minW), maxW);
+  let width = Math.round(zoom.width);
+  let height = heightForWidth(width, Math.round(width * zoom.ratio));
+  win.moveTo(
+    Math.round(zoom.centerX - width / 2),
+    Math.round(zoom.centerY - height / 2)
+  );
+  win.resizeTo(width, height);
+}
+
+document.body.addEventListener(
+  "wheel",
+  function (ev) {
+    ev.preventDefault(); // also stops Ctrl+wheel from zooming the page
+    zoomWindow(Math.exp(-ev.deltaY / 1000)); // ~10% per wheel notch
+  },
+  { passive: false }
+);
 
 function screenAt(x, y) {
   return nw.Screen.screens.find(
