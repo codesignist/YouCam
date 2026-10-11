@@ -8,35 +8,36 @@ YouTube yayıncıları için geliştirilmiş masaüstü webcam uygulaması.
 
 ### Motivasyon
 
-OBS studio'da kamera kaydı oluşturulurken ekranda kendinizi göremiyorsunuz maalesef. Bunun için ayrıca bir yazılıma ya da referans monitöre ihtiyacınız var. Bu şekilde minik, pratik bir yazılımın olmayışı ve NW.js ile deneme çalışması yapmak için bu uygulama oluşturuldu.
+OBS studio'da kamera kaydı oluşturulurken ekranda kendinizi göremiyorsunuz maalesef. Bunun için ayrıca bir yazılıma ya da referans monitöre ihtiyacınız var. Bu şekilde minik, pratik bir yazılımın olmayışı ve NW.js ile deneme çalışması yapmak için bu uygulama oluşturuldu. Uygulama sonradan [Tauri](https://tauri.app/) ve TypeScript'e taşındı.
 
 ### Kurulum
 
-Bağımlılıklar (NW.js binary dahil):
+Gereksinimler: [Node.js](https://nodejs.org/) ve [pnpm](https://pnpm.io/), [Rust](https://rustup.rs/) ve Windows'ta Visual Studio Build Tools'un "C++ ile masaüstü geliştirme" bileşeni. WebView2, Windows 10/11'de zaten kuruludur. Diğer platformlar için [Tauri ön koşullarına](https://tauri.app/start/prerequisites/) bakın.
+
+Bağımlılıklar:
 
 ```
 pnpm install
 ```
 
-Doğrudan çalıştırmak için:
+Geliştirme modunda çalıştırmak için:
 
 ```
-pnpm start
+pnpm dev
 ```
 
-Paketlemek için:
+Kurulum paketi oluşturmak için:
 
 ```
 pnpm build
 ```
 
-Varsayılan olarak win64 paketi `./dist` altına üretilir. Platform/mimari için `package.json` içindeki `nwbuild` bölümünü düzenleyin.
-Daha fazla bilgi için; [nw-builder](https://github.com/nwutils/nw-builder)
+Windows kurulum programı `src-tauri/target/release/bundle/nsis/` altına, uygulamanın kendisi `src-tauri/target/release/youcam.exe` olarak üretilir. Tip kontrolü için `pnpm typecheck`.
 
 ## Kullanılan Paket/ler
 
-- [NW.js](https://nwjs.io/) — masaüstü çalışma ortamı
-- [nw-builder](https://github.com/nwutils/nw-builder) — paketleyici
+- [Tauri](https://tauri.app/) — masaüstü çalışma ortamı (sistemin WebView'ını kullanır)
+- [TypeScript](https://www.typescriptlang.org/) ve [Vite](https://vite.dev/) — dil ve derleme aracı
 - [MediaPipe](https://ai.google.dev/edge/mediapipe) — arka plan bulanıklaştırma (selfie segmentation modeli, Apache-2.0)
 
 ## Klavye Kısayolları
