@@ -57,6 +57,7 @@ For more info; [nw-builder](https://github.com/nwutils/nw-builder)
 - [x] Keyboard shortcuts
 - [x] Remember selected camera
 - [x] Video quality selection (480p / 720p / 1080p)
+- [x] Remember window position and size
 
 ## Contributing
 

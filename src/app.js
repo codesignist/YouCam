@@ -5,6 +5,8 @@ let tray = new nw.Tray({
 });
 
 let win = nw.Window.get();
+nw.Screen.Init();
+restoreBounds();
 win.show();
 
 let isMirror = localStorage.getItem("isMirror") === "true";
@@ -16,7 +18,6 @@ let deg = normalizeDeg(parseInt(localStorage.getItem("deg"), 10) || 0);
 let rotation = deg;
 let shape = localStorage.getItem("shape") ?? "Hexagon";
 let dimensions = ["240x240", "360x360", "480x480"];
-let currentDim;
 let aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
 let aspectRatios = ["None", "1:1", "3:4", "4:3", "16:9"];
 let videoDevices = [];
@@ -100,17 +101,20 @@ function buildContextMenuItems() {
     {
       type: "normal",
       label: "Dimensions",
-      submenu: dimensions.map((dim) => ({
-        type: "checkbox",
-        label: dim,
-        checked: currentDim === dim,
-        click: function () {
-          let dimW = parseInt(dim.split("x")[0], 10);
-          win.resizeTo(dimW, heightForWidth(dimW, dimW));
-          currentDim = dim;
-          rebuildMenu();
-        },
-      })),
+      submenu: dimensions.map((dim) => {
+        let dimW = parseInt(dim.split("x")[0], 10);
+        return {
+          type: "checkbox",
+          label: dim,
+          // Derived from the window so it stays right after a manual
+          // resize and across restarts
+          checked: win.width === dimW,
+          click: function () {
+            win.resizeTo(dimW, heightForWidth(dimW, dimW));
+            rebuildMenu();
+          },
+        };
+      }),
     },
     {
       type: "normal",
@@ -380,14 +384,62 @@ function updateAspectRatio() {
 }
 updateAspectRatio();
 
-win.on("resize", () => {
-  debounceFn(() => {
-    updateAspectRatio();
-  }, 200);
-});
-
-let debounce;
-function debounceFn(action, ms) {
-  clearTimeout(debounce);
-  debounce = setTimeout(() => action(), ms);
+function screenAt(x, y) {
+  return nw.Screen.screens.find(
+    ({ work_area: a }) =>
+      x >= a.x && x < a.x + a.width && y >= a.y && y < a.y + a.height
+  );
 }
+
+function saveBounds() {
+  localStorage.setItem(
+    "bounds",
+    JSON.stringify({ x: win.x, y: win.y, width: win.width, height: win.height })
+  );
+}
+
+// Restore the last window size and position, falling back to the center of
+// the primary screen if that spot is gone (e.g. a monitor was unplugged)
+function restoreBounds() {
+  let bounds;
+  try {
+    bounds = JSON.parse(localStorage.getItem("bounds"));
+  } catch {}
+  if (!bounds) return;
+  win.resizeTo(bounds.width, bounds.height);
+  if (screenAt(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)) {
+    win.moveTo(bounds.x, bounds.y);
+  } else {
+    let area = nw.Screen.screens[0].work_area;
+    win.moveTo(
+      Math.round(area.x + (area.width - bounds.width) / 2),
+      Math.round(area.y + (area.height - bounds.height) / 2)
+    );
+  }
+}
+
+function debounced(action, ms) {
+  let timer;
+  return () => {
+    clearTimeout(timer);
+    timer = setTimeout(action, ms);
+  };
+}
+
+const onResizeEnd = debounced(() => {
+  updateAspectRatio();
+  rebuildMenu(); // refresh the Dimensions check mark
+}, 200);
+const saveBoundsLater = debounced(saveBounds, 500);
+
+win.on("resize", () => {
+  onResizeEnd();
+  saveBoundsLater();
+});
+win.on("move", saveBoundsLater);
+
+// Save right away on exit, in case a move is still waiting on the debounce
+win.on("close", function () {
+  saveBounds();
+  win.close(true);
+});
