@@ -47,9 +47,12 @@ For more info; [nw-builder](https://github.com/nwutils/nw-builder)
 | `R` / `Shift+R` | Rotate clockwise / counter-clockwise |
 | `B` | Background: off / blur / dark blur |
 | `T` | Toggle always on top |
+| `L` | Toggle screen light |
 | `Q` / `Esc` | Exit |
 | Mouse wheel | Resize the window |
 | Right click | Context menu |
+
+The screen light is a separate plain white window for lighting your face with a monitor (e.g. the second one in fullscreen). In the light window, double-click, `F` or `F11` toggles fullscreen, `Esc` leaves it and `L` closes it. Its position, size and fullscreen state are remembered.
 
 ## Todo
 
@@ -63,6 +66,7 @@ For more info; [nw-builder](https://github.com/nwutils/nw-builder)
 - [x] Remember window position and size
 - [x] Background blur
 - [x] Dark blurred background
+- [x] Screen light
 
 ## Contributing
 

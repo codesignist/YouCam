@@ -5,8 +5,7 @@ let tray = new nw.Tray({
 });
 
 let win = nw.Window.get();
-nw.Screen.Init();
-restoreBounds();
+restoreBounds(win, "bounds");
 win.show();
 
 let isMirror = localStorage.getItem("isMirror") === "true";
@@ -34,6 +33,8 @@ let background =
   localStorage.getItem("background") ??
   (localStorage.getItem("backgroundBlur") === "false" ? "Off" : "Blur");
 if (!backgrounds.includes(background)) background = "Blur";
+let lightWindow = null; // the screen light's NW window while it is open
+let lightOpening = false;
 let shapes = [
   {
     label: "Square",
@@ -182,6 +183,12 @@ function buildContextMenuItems() {
       click: toggleAlwaysOnTop,
     },
     {
+      type: "checkbox",
+      label: "Screen light (L)",
+      checked: lightWindow !== null,
+      click: toggleScreenLight,
+    },
+    {
       type: "separator",
     },
     {
@@ -265,6 +272,48 @@ function toggleAlwaysOnTop() {
   rebuildMenu();
 }
 
+// Screen light: a separate plain white window (light.html) to light your
+// face with a monitor, e.g. the second one in fullscreen
+function toggleScreenLight() {
+  if (lightWindow) {
+    lightWindow.close(); // light.js saves its bounds, then "closed" fires
+    return;
+  }
+  if (lightOpening) return;
+  lightOpening = true;
+  let options = {
+    title: "YouCam Light",
+    icon: "assets/icon.png",
+    width: 800,
+    height: 600,
+    frame: true,
+    transparent: false,
+    resizable: true,
+    show: false, // light.js shows it once its saved bounds are applied
+  };
+  // The first time, prefer a monitor other than the camera's
+  if (!localStorage.getItem("lightBounds")) {
+    let camScreen = screenAt(win.x + win.width / 2, win.y + win.height / 2);
+    let other = nw.Screen.screens.find((s) => s.id !== camScreen?.id);
+    if (other) {
+      let area = other.work_area;
+      options.x = Math.round(area.x + (area.width - options.width) / 2);
+      options.y = Math.round(area.y + (area.height - options.height) / 2);
+    } else {
+      options.position = "center";
+    }
+  }
+  nw.Window.open(new URL("light.html", location.href).href, options, (w) => {
+    lightOpening = false;
+    lightWindow = w;
+    w.on("closed", () => {
+      lightWindow = null;
+      rebuildMenu();
+    });
+    rebuildMenu();
+  });
+}
+
 function setBackground(value) {
   background = value;
   localStorage.setItem("background", background);
@@ -325,6 +374,9 @@ window.addEventListener("keydown", function (ev) {
       break;
     case "t":
       toggleAlwaysOnTop();
+      break;
+    case "l":
+      toggleScreenLight();
       break;
     case "q":
     case "escape":
@@ -498,53 +550,11 @@ document.body.addEventListener(
   { passive: false }
 );
 
-function screenAt(x, y) {
-  return nw.Screen.screens.find(
-    ({ work_area: a }) =>
-      x >= a.x && x < a.x + a.width && y >= a.y && y < a.y + a.height
-  );
-}
-
-function saveBounds() {
-  localStorage.setItem(
-    "bounds",
-    JSON.stringify({ x: win.x, y: win.y, width: win.width, height: win.height })
-  );
-}
-
-// Restore the last window size and position, falling back to the center of
-// the primary screen if that spot is gone (e.g. a monitor was unplugged)
-function restoreBounds() {
-  let bounds;
-  try {
-    bounds = JSON.parse(localStorage.getItem("bounds"));
-  } catch {}
-  if (!bounds) return;
-  win.resizeTo(bounds.width, bounds.height);
-  if (screenAt(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)) {
-    win.moveTo(bounds.x, bounds.y);
-  } else {
-    let area = nw.Screen.screens[0].work_area;
-    win.moveTo(
-      Math.round(area.x + (area.width - bounds.width) / 2),
-      Math.round(area.y + (area.height - bounds.height) / 2)
-    );
-  }
-}
-
-function debounced(action, ms) {
-  let timer;
-  return () => {
-    clearTimeout(timer);
-    timer = setTimeout(action, ms);
-  };
-}
-
 const onResizeEnd = debounced(() => {
   updateAspectRatio();
   rebuildMenu(); // refresh the Dimensions check mark
 }, 200);
-const saveBoundsLater = debounced(saveBounds, 500);
+const saveBoundsLater = debounced(() => saveBounds(win, "bounds"), 500);
 
 win.on("resize", () => {
   onResizeEnd();
@@ -552,8 +562,10 @@ win.on("resize", () => {
 });
 win.on("move", saveBoundsLater);
 
-// Save right away on exit, in case a move is still waiting on the debounce
+// Save right away on exit, in case a move is still waiting on the debounce.
+// The screen light is closed too, or the app would keep running for it.
 win.on("close", function () {
-  saveBounds();
+  saveBounds(win, "bounds");
+  lightWindow?.close();
   win.close(true);
 });

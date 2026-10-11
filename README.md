@@ -47,9 +47,12 @@ Daha fazla bilgi için; [nw-builder](https://github.com/nwutils/nw-builder)
 | `R` / `Shift+R` | Saat yönünde / tersine döndür |
 | `B` | Arka plan: kapalı / bulanık / koyu bulanık |
 | `T` | Always on top aç/kapa |
+| `L` | Ekran ışığı aç/kapa |
 | `Q` / `Esc` | Çıkış |
 | Fare tekerleği | Pencereyi büyüt / küçült |
 | Sağ tık | Bağlam menüsü |
+
+Ekran ışığı, yüzünüzü bir monitörle aydınlatmak için saf beyaz ayrı bir penceredir (ör. ikinci monitörde tam ekran). Işık penceresinde çift tık, `F` ya da `F11` tam ekrana alır, `Esc` tam ekrandan çıkar, `L` kapatır. Konumu, boyutu ve tam ekran durumu hatırlanır.
 
 ## Yapılacaklar
 
@@ -63,6 +66,7 @@ Daha fazla bilgi için; [nw-builder](https://github.com/nwutils/nw-builder)
 - [x] Pencere konumu ve boyutunun hatırlanması
 - [x] Arka plan bulanıklaştırma
 - [x] Koyu bulanık arka plan
+- [x] Ekran ışığı
 
 ## Katılım
 
