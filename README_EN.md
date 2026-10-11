@@ -52,7 +52,7 @@ For more info; [nw-builder](https://github.com/nwutils/nw-builder)
 | Mouse wheel | Resize the window |
 | Right click | Context menu |
 
-The screen light is a separate light window for lighting your face with a monitor (e.g. the second one in fullscreen). Right-click it to pick a colour temperature: White (6500K, brightest), Daylight (5600K), Neutral (4500K), Warm (3200K). For the best result, pick the one closest to the other lights in the room. Blue and Red are there for a coloured side or back light like streamers use; they give far less light than white, so use them as an accent rather than the main light. Double-click, `F` or `F11` toggles fullscreen, `Esc` leaves it and `L` closes it. Its colour, position, size and fullscreen state are remembered.
+The screen light is a separate light window for lighting your face with a monitor (e.g. the second one in fullscreen). Right-click it to pick a colour temperature: White (6500K, brightest), Daylight (5600K), Neutral (4500K), Warm (3200K). For the best result, pick the one closest to the other lights in the room. There are also the accent colours streamers use most for a coloured side or back light: Red, Pink, Purple, Blue, Cyan. Apart from Cyan they give far less light than white, so use them as an accent rather than the main light. For any other colour, Custom... opens a colour picker. Double-click, `F` or `F11` toggles fullscreen, `Esc` leaves it and `L` closes it. Its colour, position, size and fullscreen state are remembered.
 
 ## Todo
 

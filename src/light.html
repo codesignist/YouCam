@@ -17,9 +17,22 @@
       body.idle {
         cursor: none;
       }
+
+      /* Only there to open the colour picker for "Custom..."; it is moved to
+         where the menu was opened so the picker appears next to it */
+      #custom-color {
+        position: fixed;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        border: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
     </style>
   </head>
   <body>
+    <input type="color" id="custom-color" tabindex="-1" />
     <script src="common.js"></script>
     <script src="light.js"></script>
   </body>

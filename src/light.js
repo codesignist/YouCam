@@ -1,6 +1,6 @@
 // Screen light: a plain window to light your face with a monitor, or to
-// add a coloured accent light. Right-click picks the colour; double-click or F / F11 toggles fullscreen,
-// Esc leaves it, L closes it.
+// add a coloured accent light. Right-click picks the colour; double-click
+// or F / F11 toggles fullscreen, Esc leaves it, L closes it.
 let win = nw.Window.get();
 // Tracked here rather than read from win.isFullscreen, which lags behind
 // while the window is still animating in or out of fullscreen
@@ -15,12 +15,24 @@ const lightColors = [
   { id: "5600", label: "Daylight (5600K)", color: "#ffefe1" },
   { id: "4500", label: "Neutral (4500K)", color: "#ffdabb" },
   { id: "3200", label: "Warm (3200K)", color: "#ffb87b" },
-  // Accent colours for a coloured side or back light, as streamers use.
-  // Pure primaries are the most saturated colours a monitor can show, but
-  // give far less light than white (red ~1/5 of it, blue under 1/10)
-  { id: "blue", label: "Blue", color: "#0000ff", accent: true },
+  // The accent colours streamers use most for a coloured side or back light,
+  // in colour wheel order. Fully saturated, so apart from cyan they give far
+  // less light than white (red and pink ~1/5 of it, purple and blue ~1/10)
   { id: "red", label: "Red", color: "#ff0000", accent: true },
+  { id: "pink", label: "Pink", color: "#ff0080", accent: true },
+  { id: "purple", label: "Purple", color: "#8000ff", accent: true },
+  { id: "blue", label: "Blue", color: "#0000ff", accent: true },
+  { id: "cyan", label: "Cyan", color: "#00ffff", accent: true },
 ];
+// Any other colour, picked with the system colour picker
+let savedCustom = localStorage.getItem("lightCustomColor");
+const customColor = {
+  id: "custom",
+  label: "Custom...",
+  color: /^#[0-9a-f]{6}$/i.test(savedCustom) ? savedCustom : "#ffffff",
+  accent: true,
+};
+lightColors.push(customColor);
 let lightColor =
   lightColors.find((c) => c.id === localStorage.getItem("lightColor")) ??
   lightColors[0];
@@ -36,7 +48,11 @@ lightColors.forEach((c, i) => {
     type: "checkbox",
     label: c.label,
     click: function () {
-      setLightColor(c);
+      if (c === customColor) {
+        pickCustomColor();
+      } else {
+        setLightColor(c);
+      }
     },
   });
   colorItems.push(item);
@@ -70,9 +86,27 @@ function updateMenu() {
 function setLightColor(c) {
   lightColor = c;
   localStorage.setItem("lightColor", c.id);
+  if (c === customColor) localStorage.setItem("lightCustomColor", c.color);
   document.body.style.backgroundColor = c.color;
   updateMenu();
 }
+
+let customInput = document.getElementById("custom-color");
+let menuX = 0;
+let menuY = 0;
+function pickCustomColor() {
+  // Undo the check mark the click toggled; it moves once a colour is picked
+  updateMenu();
+  customInput.value = lightColor.color; // start from the current light
+  customInput.style.left = `${menuX}px`;
+  customInput.style.top = `${menuY}px`;
+  customInput.click();
+}
+// Fires while dragging in the picker too, so the light follows live
+customInput.addEventListener("input", function () {
+  customColor.color = customInput.value;
+  setLightColor(customColor);
+});
 
 function setFullscreen(on) {
   if (on === fullscreen) return;
@@ -96,6 +130,8 @@ if (localStorage.getItem("lightFullscreen") === "true") setFullscreen(true);
 
 document.body.addEventListener("contextmenu", function (ev) {
   ev.preventDefault();
+  menuX = ev.x;
+  menuY = ev.y;
   menu.popup(ev.x, ev.y);
 });
 
