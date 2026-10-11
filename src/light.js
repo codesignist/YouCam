@@ -1,13 +1,78 @@
-// Screen light: a plain white window to light your face with a monitor.
-// Double-click or F / F11 toggles fullscreen, Esc leaves it, L closes it.
+// Screen light: a plain window to light your face with a monitor, or to
+// add a coloured accent light. Right-click picks the colour; double-click or F / F11 toggles fullscreen,
+// Esc leaves it, L closes it.
 let win = nw.Window.get();
 // Tracked here rather than read from win.isFullscreen, which lags behind
 // while the window is still animating in or out of fullscreen
 let fullscreen = false;
 
-restoreBounds(win, "lightBounds");
-win.show();
-if (localStorage.getItem("lightFullscreen") === "true") setFullscreen(true);
+// Colour temperatures, the presets video lights (ring lights, bi-colour LED
+// panels) offer. 6500K is the monitor's own white (sRGB's white point) and
+// the brightest; the others are blackbody colours converted to sRGB with
+// Tanner Helland's approximation.
+const lightColors = [
+  { id: "6500", label: "White (6500K)", color: "#ffffff" },
+  { id: "5600", label: "Daylight (5600K)", color: "#ffefe1" },
+  { id: "4500", label: "Neutral (4500K)", color: "#ffdabb" },
+  { id: "3200", label: "Warm (3200K)", color: "#ffb87b" },
+  // Accent colours for a coloured side or back light, as streamers use.
+  // Pure primaries are the most saturated colours a monitor can show, but
+  // give far less light than white (red ~1/5 of it, blue under 1/10)
+  { id: "blue", label: "Blue", color: "#0000ff", accent: true },
+  { id: "red", label: "Red", color: "#ff0000", accent: true },
+];
+let lightColor =
+  lightColors.find((c) => c.id === localStorage.getItem("lightColor")) ??
+  lightColors[0];
+
+let menu = new nw.Menu();
+let colorItems = [];
+lightColors.forEach((c, i) => {
+  // A separator between the white light presets and the accent colours
+  if (c.accent && !lightColors[i - 1].accent) {
+    menu.append(new nw.MenuItem({ type: "separator" }));
+  }
+  let item = new nw.MenuItem({
+    type: "checkbox",
+    label: c.label,
+    click: function () {
+      setLightColor(c);
+    },
+  });
+  colorItems.push(item);
+  menu.append(item);
+});
+menu.append(new nw.MenuItem({ type: "separator" }));
+let fullscreenItem = new nw.MenuItem({
+  type: "checkbox",
+  label: "Fullscreen (F)",
+  click: function () {
+    setFullscreen(!fullscreen);
+  },
+});
+menu.append(fullscreenItem);
+menu.append(
+  new nw.MenuItem({
+    label: "Close (L)",
+    click: function () {
+      win.close();
+    },
+  })
+);
+
+function updateMenu() {
+  colorItems.forEach((item, i) => {
+    item.checked = lightColors[i] === lightColor;
+  });
+  fullscreenItem.checked = fullscreen;
+}
+
+function setLightColor(c) {
+  lightColor = c;
+  localStorage.setItem("lightColor", c.id);
+  document.body.style.backgroundColor = c.color;
+  updateMenu();
+}
 
 function setFullscreen(on) {
   if (on === fullscreen) return;
@@ -20,7 +85,19 @@ function setFullscreen(on) {
   } else {
     win.leaveFullscreen();
   }
+  updateMenu();
 }
+
+// Apply the saved colour before showing, so the window doesn't flash white
+setLightColor(lightColor);
+restoreBounds(win, "lightBounds");
+win.show();
+if (localStorage.getItem("lightFullscreen") === "true") setFullscreen(true);
+
+document.body.addEventListener("contextmenu", function (ev) {
+  ev.preventDefault();
+  menu.popup(ev.x, ev.y);
+});
 
 document.addEventListener("dblclick", function () {
   setFullscreen(!fullscreen);

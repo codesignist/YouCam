@@ -52,7 +52,7 @@ Daha fazla bilgi için; [nw-builder](https://github.com/nwutils/nw-builder)
 | Fare tekerleği | Pencereyi büyüt / küçült |
 | Sağ tık | Bağlam menüsü |
 
-Ekran ışığı, yüzünüzü bir monitörle aydınlatmak için saf beyaz ayrı bir penceredir (ör. ikinci monitörde tam ekran). Işık penceresinde çift tık, `F` ya da `F11` tam ekrana alır, `Esc` tam ekrandan çıkar, `L` kapatır. Konumu, boyutu ve tam ekran durumu hatırlanır.
+Ekran ışığı, yüzünüzü bir monitörle aydınlatmak için ayrı bir ışık penceresidir (ör. ikinci monitörde tam ekran). Işık penceresinde sağ tık ile renk sıcaklığı seçilir: White (6500K, en parlak), Daylight (5600K), Neutral (4500K), Warm (3200K). En iyi sonuç için odadaki diğer ışıkların rengine en yakın olanı seçin. Yayıncıların yan/arka ışık olarak kullandığı renkli vurgu için Blue ve Red de var; bunlar beyazdan çok daha az ışık verir, ana ışık olarak değil vurgu olarak kullanılır. Çift tık, `F` ya da `F11` tam ekrana alır, `Esc` tam ekrandan çıkar, `L` kapatır. Rengi, konumu, boyutu ve tam ekran durumu hatırlanır.
 
 ## Yapılacaklar
 
