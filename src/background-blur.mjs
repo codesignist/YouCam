@@ -39,6 +39,14 @@ async function createSegmenter() {
   }
 }
 
+function resize(target, width, height) {
+  // Assigning a canvas size clears it, so only do it when it changes
+  if (target.width !== width || target.height !== height) {
+    target.width = width;
+    target.height = height;
+  }
+}
+
 // Starts drawing the blurred camera image onto canvas and resolves to a
 // function that stops it again
 export async function startBackgroundBlur(video, canvas) {
@@ -60,10 +68,10 @@ export async function startBackgroundBlur(video, canvas) {
     const width = Math.round(canvas.clientWidth * devicePixelRatio);
     const height = Math.round(canvas.clientHeight * devicePixelRatio);
     if (!width || !height || !video.videoWidth) return false;
-    if (canvas.width !== width || canvas.height !== height) {
-      canvas.width = person.width = width;
-      canvas.height = person.height = height;
-    }
+    // Checked separately: the page's canvas keeps its size from an earlier
+    // start, while person is new (1x1) every time blur is turned on
+    resize(canvas, width, height);
+    resize(person, width, height);
     const scale = MODEL_SIZE / Math.max(width, height);
     const smallW = Math.round(width * scale);
     const smallH = Math.round(height * scale);
