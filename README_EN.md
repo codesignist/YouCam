@@ -37,6 +37,7 @@ For more info; [nw-builder](https://github.com/nwutils/nw-builder)
 
 - [NW.js](https://nwjs.io/) — desktop runtime
 - [nw-builder](https://github.com/nwutils/nw-builder) — packager
+- [MediaPipe](https://ai.google.dev/edge/mediapipe) — background blur (selfie segmentation model, Apache-2.0)
 
 ## Keyboard Shortcuts
 
@@ -44,6 +45,7 @@ For more info; [nw-builder](https://github.com/nwutils/nw-builder)
 |---|---|
 | `M` | Toggle mirror |
 | `R` / `Shift+R` | Rotate clockwise / counter-clockwise |
+| `B` | Toggle background blur |
 | `T` | Toggle always on top |
 | `Q` / `Esc` | Exit |
 | Mouse wheel | Resize the window |
@@ -59,6 +61,7 @@ For more info; [nw-builder](https://github.com/nwutils/nw-builder)
 - [x] Remember selected camera
 - [x] Video quality selection (480p / 720p / 1080p)
 - [x] Remember window position and size
+- [x] Background blur
 
 ## Contributing
 

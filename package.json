@@ -26,6 +26,7 @@
   "license": "ISC",
   "packageManager": "pnpm@11.2.2",
   "dependencies": {
+    "@mediapipe/tasks-vision": "^1.1.0",
     "nw": "^0.117.0"
   },
   "devDependencies": {
@@ -38,7 +39,7 @@
     "platform": "win",
     "arch": "x64",
     "outDir": "./dist",
-    "srcDir": "src/**/* assets/**/* package.json",
+    "srcDir": "src/**/* assets/**/* package.json node_modules/@mediapipe/tasks-vision/vision_bundle.mjs node_modules/@mediapipe/tasks-vision/wasm/vision_wasm_internal.js node_modules/@mediapipe/tasks-vision/wasm/vision_wasm_internal.wasm",
     "glob": true
   }
 }

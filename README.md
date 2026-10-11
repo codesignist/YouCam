@@ -37,6 +37,7 @@ Daha fazla bilgi için; [nw-builder](https://github.com/nwutils/nw-builder)
 
 - [NW.js](https://nwjs.io/) — masaüstü çalışma ortamı
 - [nw-builder](https://github.com/nwutils/nw-builder) — paketleyici
+- [MediaPipe](https://ai.google.dev/edge/mediapipe) — arka plan bulanıklaştırma (selfie segmentation modeli, Apache-2.0)
 
 ## Klavye Kısayolları
 
@@ -44,6 +45,7 @@ Daha fazla bilgi için; [nw-builder](https://github.com/nwutils/nw-builder)
 |---|---|
 | `M` | Ayna (mirror) aç/kapa |
 | `R` / `Shift+R` | Saat yönünde / tersine döndür |
+| `B` | Arka plan bulanıklaştırma aç/kapa |
 | `T` | Always on top aç/kapa |
 | `Q` / `Esc` | Çıkış |
 | Fare tekerleği | Pencereyi büyüt / küçült |
@@ -59,6 +61,7 @@ Daha fazla bilgi için; [nw-builder](https://github.com/nwutils/nw-builder)
 - [x] Seçili kameranın hatırlanması
 - [x] Görüntü kalitesi seçimi (480p / 720p / 1080p)
 - [x] Pencere konumu ve boyutunun hatırlanması
+- [x] Arka plan bulanıklaştırma
 
 ## Katılım
 

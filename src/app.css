@@ -13,7 +13,8 @@ body {
 }
 
 body,
-video {
+video,
+canvas {
   transition: border-radius 0.5s, transform 0.5s;
 }
 
@@ -29,7 +30,10 @@ body:active {
   cursor: move;
 }
 
-video {
+/* The blur canvas sits exactly on top of the video and gets the same shape,
+   rotation and mirroring */
+video,
+canvas {
   top: 50%;
   left: 50%;
   position: absolute;
@@ -38,18 +42,31 @@ video {
   z-index: -1;
   box-sizing: border-box;
   border-radius: var(--radius);
-  object-fit: cover;
-  object-position: bottom;
   transform: translate(-50%, -50%) scaleX(var(--scaleX)) rotate(var(--rotate));
 }
 
+video {
+  object-fit: cover;
+  object-position: bottom;
+}
+
+canvas {
+  display: none;
+}
+
+body.blur canvas {
+  display: block;
+}
+
 /* Rotated by 90/270deg: swap the box so the video still fills the window */
-body.sideways video {
+body.sideways video,
+body.sideways canvas {
   width: 100vh;
   height: 100vw;
 }
 
-body.hexagon video {
+body.hexagon video,
+body.hexagon canvas {
   -webkit-mask-image: url(../assets/hexagon.svg);
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-size: cover;
