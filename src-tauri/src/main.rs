@@ -5,6 +5,7 @@ use tauri::Manager;
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         // Closing the camera window quits the app, screen light included
         .on_window_event(|window, event| {
             if window.label() == "main" {

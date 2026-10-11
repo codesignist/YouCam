@@ -12,6 +12,8 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 # tray-icon: the tray menu; image-png: the tray icon is handed over as PNG
 tauri = { version = "2", features = ["tray-icon", "image-png"] }
+# The hide/show shortcut that works while another app (e.g. a game) has focus
+tauri-plugin-global-shortcut = "2"
 
 [profile.release]
 # A smaller executable; this app does little work on the Rust side

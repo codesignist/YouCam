@@ -16,6 +16,7 @@ import {
 } from "@tauri-apps/api/menu";
 import { TrayIcon } from "@tauri-apps/api/tray";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { register, unregisterAll } from "@tauri-apps/plugin-global-shortcut";
 import trayIconUrl from "../assets/icon-tray.png?url";
 import type { BackgroundEffect, BackgroundMode } from "./background";
 import {
@@ -63,6 +64,19 @@ const shapes = [
   { label: "Circle", val: "50%" },
   { label: "Hexagon", val: "50%" },
 ];
+// Hides and shows the window from anywhere, e.g. from a game; accelerators
+// in the global shortcut plugin's syntax
+const hideShortcuts = [
+  { label: "Ctrl+Shift+Y", accelerator: "Control+Shift+Y" },
+  { label: "Ctrl+Alt+Y", accelerator: "Control+Alt+Y" },
+  { label: "Scroll Lock", accelerator: "ScrollLock" },
+  { label: "Off" },
+];
+let hideShortcut = localStorage.getItem("hideShortcut") ?? "";
+if (!hideShortcuts.some((s) => s.label === hideShortcut)) {
+  hideShortcut = hideShortcuts[0].label;
+}
+let hidden = false;
 
 // Physical pixels per CSS pixel on the window's current monitor
 const pixelRatio = () => window.devicePixelRatio;
@@ -115,7 +129,7 @@ interface MenuEntry {
 
 function buildMenuEntries(): MenuEntry[] {
   return [
-    { label: "YouCam", action: showWindow },
+    { label: "YouCam", action: () => void setHidden(false) },
     {
       label: "Cam source",
       submenu: videoDevices.map((device, i) => ({
@@ -203,6 +217,17 @@ function buildMenuEntries(): MenuEntry[] {
       action: toggleScreenLight,
     },
     { separator: true },
+    // Only the tray menu is there while the window is hidden
+    { label: hidden ? "Show" : "Hide (H)", action: () => void setHidden(!hidden) },
+    {
+      label: "Hide/show shortcut",
+      submenu: hideShortcuts.map((s) => ({
+        label: s.label,
+        checked: hideShortcut === s.label,
+        action: () => setHideShortcut(s.label),
+      })),
+    },
+    { separator: true },
     { label: "Exit (Q)", action: () => win.close() },
   ];
 }
@@ -267,11 +292,6 @@ function rebuildMenu(): Promise<void> {
   return menuQueue;
 }
 
-async function showWindow(): Promise<void> {
-  await win.show();
-  await win.setFocus();
-}
-
 await rebuildMenu();
 // A dev-server reload runs this again; don't leave the old icon behind
 // (removeById would throw when there is none)
@@ -288,7 +308,7 @@ tray = await TrayIcon.new({
       event.button === "Left" &&
       event.buttonState === "Up"
     ) {
-      void showWindow();
+      void setHidden(!hidden);
     }
   },
 });
@@ -432,6 +452,80 @@ function showNotice(message: Message): void {
   noticeTimer = setTimeout(() => renderMessage(null), 4000);
 }
 
+// ---- Hiding ------------------------------------------------------------------
+
+// The camera is off while the window is hidden, leaving the CPU (and the
+// camera) to other apps, e.g. a game. focus: false shows the window without
+// taking the focus from the app in front: the shortcut may be pressed in a
+// game, which would lose its keys to this window (and Q would close it).
+async function setHidden(value: boolean, focus = true): Promise<void> {
+  if (value === hidden) {
+    if (!hidden && focus) await win.setFocus(); // brings it to the front
+    return;
+  }
+  hidden = value;
+  rebuildMenu();
+  setVideo(currentDeviceId); // stops the camera while hidden
+  if (hidden) {
+    await win.hide();
+    return;
+  }
+  // Rather than an empty shape until the camera has started
+  await firstFrame();
+  if (hidden) return; // hidden again in the meantime
+  if (focus) {
+    await win.show();
+    await win.setFocus();
+  } else {
+    // On Windows show() also activates the window, unless it can't take
+    // the focus
+    await win.setFocusable(false);
+    await win.show();
+    await win.setFocusable(true);
+  }
+}
+
+// Resolves once the video plays, or after a while if it doesn't (the camera
+// message is up then)
+function firstFrame(): Promise<void> {
+  return new Promise((resolve) => {
+    video.addEventListener("playing", () => resolve(), { once: true });
+    setTimeout(resolve, 1500);
+  });
+}
+
+// Registrations run one after another, so a quick change of mind can't
+// leave two shortcuts registered
+let shortcutQueue: Promise<void> = Promise.resolve();
+function applyHideShortcut(): void {
+  shortcutQueue = shortcutQueue.then(async () => {
+    // Also drops the one a previous page load registered (a dev-server reload)
+    await unregisterAll().catch((err) => console.error("shortcut:", err));
+    const { label, accelerator } =
+      hideShortcuts.find((s) => s.label === hideShortcut) ?? hideShortcuts[0];
+    if (!accelerator) return;
+    try {
+      await register(accelerator, (event) => {
+        if (event.state === "Pressed") void setHidden(!hidden, false);
+      });
+    } catch (err) {
+      console.error("shortcut:", err);
+      showNotice({
+        title: `${label} is taken`,
+        hint: "Another app uses it; pick another under Hide/show shortcut.",
+      });
+    }
+  });
+}
+applyHideShortcut();
+
+function setHideShortcut(label: string): void {
+  hideShortcut = label;
+  localStorage.setItem("hideShortcut", label);
+  applyHideShortcut();
+  rebuildMenu();
+}
+
 // ---- Background effects ------------------------------------------------------
 
 function setBackground(value: Background): void {
@@ -502,6 +596,9 @@ window.addEventListener("keydown", (ev) => {
     case "l":
       toggleScreenLight();
       break;
+    case "h":
+      void setHidden(true);
+      break;
     case "q":
     case "escape":
       void win.close();
@@ -541,6 +638,12 @@ function setVideo(id?: string, orDefault = false): void {
   }
   stopWaiting();
   if (currentStream) stopMediaTracks(currentStream);
+  if (hidden) {
+    // Started again when the window is shown
+    currentStream = undefined;
+    video.srcObject = null;
+    return;
+  }
   // "ideal" lets cameras that can't reach the resolution fall back to the
   // closest mode instead of failing
   const { width, height } =
