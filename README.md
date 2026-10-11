@@ -68,6 +68,7 @@ Ekran ışığı, yüzünüzü bir monitörle aydınlatmak için ayrı bir ış�
 - [x] Arka plan bulanıklaştırma
 - [x] Koyu bulanık arka plan
 - [x] Ekran ışığı
+- [x] Kamera sorunlarını pencerede gösterme ve otomatik yeniden bağlanma
 
 ## Katılım
 

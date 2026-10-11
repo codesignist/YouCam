@@ -14,7 +14,8 @@ body {
 
 body,
 video,
-canvas {
+canvas,
+#status::before {
   transition: border-radius 0.5s, transform 0.5s;
 }
 
@@ -31,9 +32,11 @@ body:active {
 }
 
 /* The background effect canvas sits exactly on top of the video and gets
-   the same shape, rotation and mirroring */
+   the same shape, rotation and mirroring; so does the backdrop of the
+   status message, whose text stays upright */
 video,
-canvas {
+canvas,
+#status::before {
   top: 50%;
   left: 50%;
   position: absolute;
@@ -58,17 +61,79 @@ body.background-effect canvas {
   display: block;
 }
 
+/* No camera: don't leave its last frame behind the message */
+body.camera-off video,
+body.camera-off canvas {
+  visibility: hidden;
+}
+
 /* Rotated by 90/270deg: swap the box so the video still fills the window */
 body.sideways video,
-body.sideways canvas {
+body.sideways canvas,
+body.sideways #status::before {
   width: 100vh;
   height: 100vw;
 }
 
 body.hexagon video,
-body.hexagon canvas {
+body.hexagon canvas,
+body.hexagon #status::before {
   -webkit-mask-image: url(../assets/hexagon.svg);
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-size: cover;
   border-radius: 0;
+}
+
+/* What is wrong with the camera, or a short notice, in place of alert().
+   The side padding keeps the text inside a circle or hexagon. */
+#status {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14%;
+  color: #fff;
+  font: 12px/1.35 "Segoe UI", system-ui, sans-serif;
+  text-align: center;
+  user-select: none;
+}
+
+#status[hidden] {
+  display: none;
+}
+
+#status::before {
+  content: "";
+  background: rgba(24, 24, 27, 0.9);
+}
+
+#status strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#status button {
+  margin-top: 4px;
+  max-width: 100%;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.18);
+  font: inherit;
+}
+
+#status button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* A small window only has room for the title and the buttons */
+@media (max-width: 199px), (max-height: 199px) {
+  #status .hint {
+    display: none;
+  }
 }

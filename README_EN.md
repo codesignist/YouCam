@@ -68,6 +68,7 @@ The screen light is a separate light window for lighting your face with a monito
 - [x] Background blur
 - [x] Dark blurred background
 - [x] Screen light
+- [x] Camera problems shown in the window, automatic reconnect
 
 ## Contributing
 

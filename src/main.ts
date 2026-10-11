@@ -381,6 +381,57 @@ function toggleScreenLight(): void {
   });
 }
 
+// ---- Messages ----------------------------------------------------------------
+
+// Shown in the window, in its shape: what is wrong with the camera while it
+// is not working, or a short notice that goes away by itself
+interface Message {
+  title: string;
+  hint?: string;
+  actions?: { label: string; action: () => void }[];
+}
+
+const statusBox = document.getElementById("status") as HTMLDivElement;
+let cameraMessage: Message | null = null;
+let noticeTimer: ReturnType<typeof setTimeout> | undefined;
+
+function renderMessage(message: Message | null): void {
+  statusBox.hidden = !message;
+  statusBox.replaceChildren();
+  if (!message) return;
+  const title = document.createElement("strong");
+  title.textContent = message.title;
+  statusBox.append(title);
+  if (message.hint) {
+    const hint = document.createElement("span");
+    hint.className = "hint";
+    hint.textContent = message.hint;
+    statusBox.append(hint);
+  }
+  for (const { label, action } of message.actions ?? []) {
+    const button = document.createElement("button");
+    button.textContent = label;
+    button.addEventListener("click", action);
+    statusBox.append(button);
+  }
+}
+
+function setCameraMessage(message: Message | null): void {
+  // Each retry repeats the message; rendering it again would swallow a click
+  // in progress on its buttons (JSON leaves the actions out, their labels in)
+  if (JSON.stringify(message) === JSON.stringify(cameraMessage)) return;
+  cameraMessage = message;
+  clearTimeout(noticeTimer);
+  renderMessage(message);
+}
+
+function showNotice(message: Message): void {
+  if (cameraMessage) return; // the camera not working matters more
+  clearTimeout(noticeTimer);
+  renderMessage(message);
+  noticeTimer = setTimeout(() => renderMessage(null), 4000);
+}
+
 // ---- Background effects ------------------------------------------------------
 
 function setBackground(value: Background): void {
@@ -415,7 +466,10 @@ function updateBackground(): void {
         localStorage.setItem("background", background);
         document.body.classList.remove("background-effect");
         rebuildMenu();
-        alert("could not start the background effect");
+        showNotice({
+          title: "Background effect failed",
+          hint: "It is off for now; press B to try again.",
+        });
         return undefined;
       });
   } else if (on) {
@@ -468,18 +522,24 @@ function refreshDevices(): void {
       console.error(`${err.name}: ${err.message}`);
     });
 }
-navigator.mediaDevices.addEventListener("devicechange", refreshDevices);
-refreshDevices();
-
 let currentStream: MediaStream | undefined;
 let videoRequest = 0;
 function stopMediaTracks(stream: MediaStream): void {
   stream.getTracks().forEach((track) => track.stop());
 }
 
-function setVideo(id?: string): void {
+// orDefault: at startup, a saved camera that is gone gives way to the
+// default one. Otherwise a camera that can't be used is waited for.
+function setVideo(id?: string, orDefault = false): void {
   // Lets a slower, outdated request be dropped if the camera is switched again
   const request = ++videoRequest;
+  // The camera picked is the one to wait for if it doesn't work, and the one
+  // the menu checks
+  if (id !== currentDeviceId) {
+    currentDeviceId = id;
+    rebuildMenu();
+  }
+  stopWaiting();
   if (currentStream) stopMediaTracks(currentStream);
   // "ideal" lets cameras that can't reach the resolution fall back to the
   // closest mode instead of failing
@@ -504,30 +564,165 @@ function setVideo(id?: string): void {
       }
       currentStream = stream;
       video.srcObject = stream;
-      currentDeviceId = stream.getVideoTracks()[0]?.getSettings().deviceId;
+      const track = stream.getVideoTracks()[0];
+      currentDeviceId = track?.getSettings().deviceId;
+      // Fires when the camera goes away (e.g. unplugged), not when YouCam
+      // stops it
+      track?.addEventListener("ended", () => {
+        if (stream === currentStream) cameraDown("missing");
+      });
       if (id) localStorage.setItem("deviceId", id);
+      document.body.classList.remove("camera-off");
+      setCameraMessage(null);
       // Device labels may only be exposed once a stream is active
       refreshDevices();
     })
     .catch((err) => {
       if (request !== videoRequest) return;
       console.error(`getUserMedia: ${err.name}: ${err.message}`);
-      if (id && err.name === "OverconstrainedError") {
+      if (orDefault && id && err.name === "OverconstrainedError") {
         localStorage.removeItem("deviceId");
         setVideo();
         return;
       }
-      alert("could not connect stream");
+      cameraDown(problemOf(err.name));
     });
 }
-setVideo(localStorage.getItem("deviceId") || undefined);
+
+type CameraProblem = "denied" | "missing" | "busy" | "failed";
+
+function problemOf(errorName: string): CameraProblem {
+  switch (errorName) {
+    case "NotAllowedError": // by WebView2 or Windows' privacy settings
+    case "SecurityError":
+      return "denied";
+    case "NotFoundError":
+    case "OverconstrainedError": // the exact deviceId isn't there
+      return "missing";
+    case "NotReadableError": // on Windows: another app has the camera
+      return "busy";
+    default:
+      return "failed";
+  }
+}
+
+function messageFor(problem: CameraProblem): Message {
+  const tryAgain = { label: "Try again", action: () => setVideo(currentDeviceId) };
+  switch (problem) {
+    case "denied":
+      return {
+        title: "No camera access",
+        hint: "Allow it under Windows Settings > Privacy & security > Camera.",
+        actions: [tryAgain],
+      };
+    case "missing":
+      return currentDeviceId
+        ? {
+            title: "Camera disconnected",
+            hint: "Plug it back in and YouCam will reconnect, or right-click to pick another.",
+          }
+        : {
+            title: "No camera found",
+            hint: "Plug one in and YouCam will connect to it.",
+          };
+    case "busy": {
+      const picked = videoDevices.find((d) => d.deviceId === currentDeviceId);
+      if (picked && /OBS Virtual Camera/i.test(picked.label)) {
+        // It can't be opened until it is started in OBS
+        return {
+          title: "OBS Virtual Camera is off",
+          hint: "Start it in OBS (Start Virtual Camera) and YouCam will connect.",
+        };
+      }
+      // OBS usually keeps the camera it records to itself, but can pass the
+      // picture on through its Virtual Camera
+      const obs = videoDevices.find(
+        (d) => /OBS Virtual Camera/i.test(d.label) && d.deviceId !== currentDeviceId
+      );
+      return obs
+        ? {
+            title: "Camera is in use",
+            hint: "If OBS has it, start OBS's Virtual Camera and use that.",
+            actions: [
+              { label: "Use OBS Virtual Camera", action: () => setVideo(obs.deviceId) },
+            ],
+          }
+        : {
+            title: "Camera is in use",
+            hint: "YouCam will connect once the other app lets go of it.",
+          };
+    }
+    case "failed":
+      return {
+        title: "Camera didn't start",
+        hint: "YouCam will keep trying.",
+        actions: [tryAgain],
+      };
+  }
+}
+
+// Says what is wrong in the window and, unless only the user can fix it,
+// keeps trying to connect
+function cameraDown(problem: CameraProblem): void {
+  if (currentStream) stopMediaTracks(currentStream);
+  currentStream = undefined;
+  video.srcObject = null;
+  document.body.classList.add("camera-off");
+  setCameraMessage(messageFor(problem));
+  if (problem !== "denied") waitForCamera();
+}
+
+// While the camera is down: how often to try again. Nothing tells when a busy
+// camera is free, and a camera plugged back in may not be ready at once.
+const RETRY_MS = 3000;
+let waiting = false;
+let retryTimer: ReturnType<typeof setTimeout> | undefined;
+
+function waitForCamera(): void {
+  waiting = true;
+  clearTimeout(retryTimer);
+  retryTimer = setTimeout(retryCamera, RETRY_MS);
+}
+
+function stopWaiting(): void {
+  waiting = false;
+  clearTimeout(retryTimer);
+}
+
+// Only asks for the camera once it is listed, so an unplugged one isn't
+// opened (and failed) over and over
+async function retryCamera(): Promise<void> {
+  if (!waiting) return;
+  clearTimeout(retryTimer);
+  const devices = await navigator.mediaDevices.enumerateDevices().catch(() => []);
+  if (!waiting) return; // another retry or a camera picked from the menu
+  const cameras = devices.filter((device) => device.kind === "videoinput");
+  const there = currentDeviceId
+    ? cameras.some((device) => device.deviceId === currentDeviceId)
+    : cameras.length > 0;
+  if (there) setVideo(currentDeviceId);
+  else waitForCamera();
+}
+
+// Plugging a camera in fires devicechange more than once
+const retrySoon = debounced(() => void retryCamera(), 1000);
+navigator.mediaDevices.addEventListener("devicechange", () => {
+  refreshDevices();
+  retrySoon();
+});
+refreshDevices();
+
+setVideo(localStorage.getItem("deviceId") || undefined, true);
 updateBackground();
 
 // ---- Window size and position --------------------------------------------------
 
-// Drag the frameless window with the left button; the OS does the moving
+// Drag the frameless window with the left button; the OS does the moving.
+// The status message's buttons are there to be clicked instead.
 document.body.addEventListener("mousedown", (ev) => {
-  if (ev.button === 0) void win.startDragging();
+  if (ev.button === 0 && !(ev.target as Element).closest("button")) {
+    void win.startDragging();
+  }
 });
 
 function resizeWindow(width: number, height: number): void {
