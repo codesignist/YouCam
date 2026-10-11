@@ -1,23 +1,26 @@
-let gui = require("nw.gui");
 let tray = new nw.Tray({
   title: "YouCam",
   tooltip: "YouCam",
   icon: "assets/icon-tray.png",
 });
 
-var win = gui.Window.get();
+let win = nw.Window.get();
 win.show();
 
 let isMirror = localStorage.getItem("isMirror") === "true";
 let alwaysOnTop = localStorage.getItem("alwaysOnTop") !== "false";
 win.setAlwaysOnTop(alwaysOnTop);
-let deg = parseInt(localStorage.getItem("deg"), 10);
-if (isNaN(deg)) deg = 0;
+let deg = normalizeDeg(parseInt(localStorage.getItem("deg"), 10) || 0);
+// Unbounded copy of deg for the CSS transform, so the transition always
+// turns 90deg the short way (270 -> 360 instead of spinning back to 0)
+let rotation = deg;
 let shape = localStorage.getItem("shape") ?? "Hexagon";
 let dimensions = ["240x240", "360x360", "480x480"];
 let currentDim;
 let aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
 let aspectRatios = ["None", "1:1", "3:4", "4:3", "16:9"];
+let videoDevices = [];
+let currentDeviceId;
 let shapes = [
   {
     label: "Square",
@@ -43,39 +46,20 @@ function buildContextMenuItems() {
       type: "normal",
       label: "YouCam",
       click: function () {
-        nw.Window.get().show();
+        win.show();
       },
     },
     {
       type: "normal",
       label: "Cam source",
-      submenu: () => {
-        let camMenu = new nw.Menu();
-        if (!navigator.mediaDevices?.enumerateDevices) {
-          console.log("enumerateDevices() not supported.");
-        } else {
-          navigator.mediaDevices
-            .enumerateDevices()
-            .then((devices) => {
-              devices.forEach((device) => {
-                if (device.kind === "videoinput") {
-                  camMenu.append(
-                    new nw.MenuItem({
-                      label: device.label,
-                      click: function () {
-                        setVideo(device.deviceId);
-                      },
-                    })
-                  );
-                }
-              });
-            })
-            .catch((err) => {
-              console.error(`${err.name}: ${err.message}`);
-            });
-        }
-        return camMenu;
-      },
+      submenu: videoDevices.map((device, i) => ({
+        type: "checkbox",
+        label: device.label || `Camera ${i + 1}`,
+        checked: device.deviceId === currentDeviceId,
+        click: function () {
+          setVideo(device.deviceId);
+        },
+      })),
     },
     {
       type: "normal",
@@ -101,8 +85,7 @@ function buildContextMenuItems() {
         checked: currentDim === dim,
         click: function () {
           let dimW = parseInt(dim.split("x")[0], 10);
-          win.width = dimW;
-          win.height = dimW;
+          win.resizeTo(dimW, heightForWidth(dimW, dimW));
           currentDim = dim;
           rebuildMenu();
         },
@@ -116,6 +99,7 @@ function buildContextMenuItems() {
         label: ratio,
         checked: aspectRatio === ratio,
         click: function () {
+          aspectRatio = ratio;
           localStorage.setItem("aspectRatio", ratio);
           updateAspectRatio();
           rebuildMenu();
@@ -161,31 +145,21 @@ function buildContextMenuItems() {
       type: "normal",
       label: "Exit (Q)",
       click: function () {
-        nw.Window.get().close();
+        win.close();
       },
     },
   ];
 }
 
 function createMenuItem(options) {
-  try {
-    if (Object.hasOwn(options, "submenu")) {
-      const { submenu } = options;
-      let subMenu = new nw.Menu();
-      if (typeof submenu == "function") {
-        subMenu = submenu();
-      } else {
-        options.submenu.forEach((item) => {
-          subMenu.append(createMenuItem(item));
-        });
-      }
-      options.submenu = subMenu;
-    }
-    let menuItem = nw.MenuItem(options);
-    return menuItem;
-  } catch (error) {
-    alert("ERROR: " + error);
+  if (Object.hasOwn(options, "submenu")) {
+    let subMenu = new nw.Menu();
+    options.submenu.forEach((item) => {
+      subMenu.append(createMenuItem(item));
+    });
+    options.submenu = subMenu;
   }
+  return new nw.MenuItem(options);
 }
 
 var menu;
@@ -202,34 +176,34 @@ function rebuildMenu() {
 }
 rebuildMenu();
 
+function normalizeDeg(value) {
+  // Snap to a multiple of 90 within [0, 360)
+  return (((Math.round(value / 90) * 90) % 360) + 360) % 360;
+}
+
 function rotate(rotateBy = 90) {
-  deg = (deg + rotateBy) % 360; // [0, 90, 180, 270]
-  if (Math.abs(deg % 90) > 0) {
-    deg -= deg % 90; // etc. 182 -> 180. get rid of excess value
-  }
+  deg = normalizeDeg(deg + rotateBy);
+  rotation += rotateBy;
   localStorage.setItem("deg", deg);
   updateVars();
   if (aspectRatio != "None") {
     aspectRatio = aspectRatio.split(":").reverse().join(":");
     localStorage.setItem("aspectRatio", aspectRatio);
   }
+  // The swapped size already matches the reversed ratio; the resize
+  // handler re-applies it once the window has actually been resized
   win.resizeTo(win.height, win.width);
-  updateAspectRatio();
   rebuildMenu();
 }
 
 function updateVars() {
   const docStyle = document.documentElement.style;
-  const body = document.getElementsByTagName("BODY")[0];
   docStyle.setProperty("--scaleX", isMirror ? -1 : 1);
-  docStyle.setProperty("--rotate", `${deg}deg`);
-  let shapeVal = shapes.find((o) => o.label === shape).val ?? "50%";
+  docStyle.setProperty("--rotate", `${rotation}deg`);
+  let shapeVal = shapes.find((o) => o.label === shape)?.val ?? "50%";
   docStyle.setProperty("--radius", shapeVal);
-  if (shape === "Hexagon") {
-    body.classList.add("hexagon");
-  } else {
-    body.classList.remove("hexagon");
-  }
+  document.body.classList.toggle("hexagon", shape === "Hexagon");
+  document.body.classList.toggle("sideways", deg % 180 !== 0);
 }
 
 updateVars();
@@ -249,6 +223,7 @@ function toggleAlwaysOnTop() {
 }
 
 window.addEventListener("keydown", function (ev) {
+  if (ev.repeat) return;
   switch (ev.key.toLowerCase()) {
     case "m":
       toggleMirror();
@@ -261,37 +236,59 @@ window.addEventListener("keydown", function (ev) {
       break;
     case "q":
     case "escape":
-      nw.Window.get().close();
+      win.close();
       break;
   }
 });
 
+function refreshDevices() {
+  navigator.mediaDevices
+    .enumerateDevices()
+    .then((devices) => {
+      videoDevices = devices.filter((device) => device.kind === "videoinput");
+      rebuildMenu();
+    })
+    .catch((err) => {
+      console.error(`${err.name}: ${err.message}`);
+    });
+}
+navigator.mediaDevices.addEventListener("devicechange", refreshDevices);
+refreshDevices();
+
 let currentStream;
+let videoRequest = 0;
 function stopMediaTracks(stream) {
   stream.getTracks().forEach((track) => {
     track.stop();
   });
 }
 function setVideo(id) {
-  if (typeof currentStream !== "undefined") {
+  // Lets a slower, outdated request be dropped if the camera is switched again
+  const request = ++videoRequest;
+  if (currentStream) {
     stopMediaTracks(currentStream);
   }
-  let videoConstraints = { facingMode: "user" };
+  let videoConstraints = id
+    ? { deviceId: { exact: id } }
+    : { facingMode: "user" };
 
-  if (!id) {
-    videoConstraints.facingMode = "environment";
-  } else {
-    videoConstraints.deviceId = { exact: id };
-    localStorage.setItem("deviceId", id);
-  }
   navigator.mediaDevices
     .getUserMedia({ video: videoConstraints })
     .then((stream) => {
+      if (request !== videoRequest) {
+        stopMediaTracks(stream);
+        return;
+      }
       const video = document.getElementById("camera");
       currentStream = stream;
       video.srcObject = stream;
+      currentDeviceId = stream.getVideoTracks()[0]?.getSettings().deviceId;
+      if (id) localStorage.setItem("deviceId", id);
+      // Device labels may only be exposed once a stream is active
+      refreshDevices();
     })
     .catch((err) => {
+      if (request !== videoRequest) return;
       console.error(`getUserMedia: ${err.name}: ${err.message}`);
       if (id && err.name === "OverconstrainedError") {
         localStorage.removeItem("deviceId");
@@ -304,9 +301,9 @@ function setVideo(id) {
 setVideo(localStorage.getItem("deviceId") || undefined);
 
 if (process.platform == "darwin") {
-  let macMenu = new gui.Menu({ type: "menubar" });
+  let macMenu = new nw.Menu({ type: "menubar" });
   macMenu.createMacBuiltin && macMenu.createMacBuiltin(window.document.title);
-  gui.Window.get().menu = macMenu;
+  win.menu = macMenu;
 }
 
 document.body.addEventListener(
@@ -319,38 +316,39 @@ document.body.addEventListener(
   false
 );
 
-let mousePos = { x: 0, y: 0 };
-function mouseMove(ev) {
-  win.moveTo(ev.screenX - mousePos.x, ev.screenY - mousePos.y);
+// Drag the frameless window with the left button. Pointer capture keeps the
+// events coming even if the cursor briefly outruns the window.
+let dragOffset = null;
+document.body.addEventListener("pointerdown", function (ev) {
+  if (ev.button !== 0) return;
+  dragOffset = { x: ev.clientX, y: ev.clientY };
+  document.body.setPointerCapture(ev.pointerId);
+});
+
+document.body.addEventListener("pointermove", function (ev) {
+  if (!dragOffset) return;
+  win.moveTo(ev.screenX - dragOffset.x, ev.screenY - dragOffset.y);
+});
+
+function endDrag() {
+  dragOffset = null;
+}
+document.body.addEventListener("pointerup", endDrag);
+document.body.addEventListener("pointercancel", endDrag);
+
+// Window height that matches the selected aspect ratio for the given width
+function heightForWidth(width, fallback) {
+  if (aspectRatio == "None") return fallback;
+  let [ratioW, ratioH] = aspectRatio
+    .split(":")
+    .map((ratio) => parseInt(ratio, 10));
+  return Math.round((width / ratioW) * ratioH);
 }
 
-document.body.addEventListener("mousedown", function (ev) {
-  mousePos = { x: ev.x, y: ev.y };
-  window.addEventListener("mousemove", mouseMove);
-});
-
-document.body.addEventListener("mouseup", function (ev) {
-  window.removeEventListener("mousemove", mouseMove);
-});
-
+// Assigning win.width/win.height is a no-op in NW.js, so always use resizeTo
 function updateAspectRatio() {
-  let docStyle = document.documentElement.style;
-  aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
-  if (aspectRatio != "None") {
-    let [vertical, horizontal] = aspectRatio
-      .split(":")
-      .map((ratio) => parseInt(ratio));
-    win.height = Math.round((win.width / vertical) * horizontal);
-  }
-
-  docStyle.setProperty(
-    "--width",
-    ([90, 270].includes(Math.abs(deg)) ? win.height : win.width) + "px"
-  );
-  docStyle.setProperty(
-    "--height",
-    ([90, 270].includes(Math.abs(deg)) ? win.width : win.height) + "px"
-  );
+  let height = heightForWidth(win.width, win.height);
+  if (height !== win.height) win.resizeTo(win.width, height);
 }
 updateAspectRatio();
 
