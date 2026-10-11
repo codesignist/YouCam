@@ -21,6 +21,12 @@ let aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
 let aspectRatios = ["None", "1:1", "3:4", "4:3", "16:9"];
 let videoDevices = [];
 let currentDeviceId;
+let qualities = [
+  { label: "480p", width: 640, height: 480 },
+  { label: "720p", width: 1280, height: 720 },
+  { label: "1080p", width: 1920, height: 1080 },
+];
+let quality = localStorage.getItem("quality") ?? "720p";
 let shapes = [
   {
     label: "Square",
@@ -58,6 +64,21 @@ function buildContextMenuItems() {
         checked: device.deviceId === currentDeviceId,
         click: function () {
           setVideo(device.deviceId);
+        },
+      })),
+    },
+    {
+      type: "normal",
+      label: "Quality",
+      submenu: qualities.map((q) => ({
+        type: "checkbox",
+        label: q.label,
+        checked: quality === q.label,
+        click: function () {
+          quality = q.label;
+          localStorage.setItem("quality", quality);
+          setVideo(currentDeviceId);
+          rebuildMenu();
         },
       })),
     },
@@ -268,9 +289,16 @@ function setVideo(id) {
   if (currentStream) {
     stopMediaTracks(currentStream);
   }
-  let videoConstraints = id
-    ? { deviceId: { exact: id } }
-    : { facingMode: "user" };
+  // "ideal" lets cameras that can't reach the resolution fall back to the
+  // closest mode instead of failing
+  let { width, height } =
+    qualities.find((q) => q.label === quality) ?? qualities[1];
+  let videoConstraints = { width: { ideal: width }, height: { ideal: height } };
+  if (id) {
+    videoConstraints.deviceId = { exact: id };
+  } else {
+    videoConstraints.facingMode = "user";
+  }
 
   navigator.mediaDevices
     .getUserMedia({ video: videoConstraints })

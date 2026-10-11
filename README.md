@@ -56,6 +56,7 @@ Daha fazla bilgi için; [nw-builder](https://github.com/nwutils/nw-builder)
 - [x] İngilizce ReadMe.md
 - [x] Klavye kısayolları
 - [x] Seçili kameranın hatırlanması
+- [x] Görüntü kalitesi seçimi (480p / 720p / 1080p)
 
 ## Katılım
 
