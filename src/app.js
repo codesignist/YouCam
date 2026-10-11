@@ -28,7 +28,12 @@ let qualities = [
   { label: "1080p", width: 1920, height: 1080 },
 ];
 let quality = localStorage.getItem("quality") ?? "720p";
-let backgroundBlur = localStorage.getItem("backgroundBlur") !== "false";
+let backgrounds = ["Off", "Blur", "Dark blur"];
+// Before "Dark blur" existed this was the on/off "backgroundBlur" setting
+let background =
+  localStorage.getItem("background") ??
+  (localStorage.getItem("backgroundBlur") === "false" ? "Off" : "Blur");
+if (!backgrounds.includes(background)) background = "Blur";
 let shapes = [
   {
     label: "Square",
@@ -153,10 +158,16 @@ function buildContextMenuItems() {
       ],
     },
     {
-      type: "checkbox",
-      label: "Background blur (B)",
-      checked: backgroundBlur,
-      click: toggleBackgroundBlur,
+      type: "normal",
+      label: "Background (B)",
+      submenu: backgrounds.map((bg) => ({
+        type: "checkbox",
+        label: bg,
+        checked: background === bg,
+        click: function () {
+          setBackground(bg);
+        },
+      })),
     },
     {
       type: "checkbox",
@@ -254,39 +265,49 @@ function toggleAlwaysOnTop() {
   rebuildMenu();
 }
 
-function toggleBackgroundBlur() {
-  backgroundBlur = !backgroundBlur;
-  localStorage.setItem("backgroundBlur", backgroundBlur);
-  updateBackgroundBlur();
+function setBackground(value) {
+  background = value;
+  localStorage.setItem("background", background);
+  updateBackground();
   rebuildMenu();
 }
 
-// The blurred image is drawn on a canvas over the video, so the plain video
-// keeps showing while the model loads. stopBlur holds a promise of the stop
-// function returned by background-blur.mjs while blur is on.
-let stopBlur = null;
-function updateBackgroundBlur() {
-  document.body.classList.toggle("blur", backgroundBlur);
-  if (backgroundBlur && !stopBlur) {
-    stopBlur = import("./background-blur.mjs")
-      .then(({ startBackgroundBlur }) =>
-        startBackgroundBlur(
+// B steps through Off -> Blur -> Dark blur
+function cycleBackground() {
+  let next = (backgrounds.indexOf(background) + 1) % backgrounds.length;
+  setBackground(backgrounds[next]);
+}
+
+// The effect is drawn on a canvas over the video, so the plain video keeps
+// showing while the model loads. backgroundEffect holds a promise of the
+// controller returned by background.mjs while an effect is on.
+let backgroundEffect = null;
+function updateBackground() {
+  let on = background !== "Off";
+  document.body.classList.toggle("background-effect", on);
+  if (on && !backgroundEffect) {
+    backgroundEffect = import("./background.mjs")
+      .then(({ startBackground }) =>
+        startBackground(
           document.getElementById("camera"),
-          document.getElementById("blur")
+          document.getElementById("background"),
+          background
         )
       )
       .catch((err) => {
-        console.error("background blur:", err);
-        stopBlur = null;
-        backgroundBlur = false;
-        localStorage.setItem("backgroundBlur", false);
-        document.body.classList.remove("blur");
+        console.error("background:", err);
+        backgroundEffect = null;
+        background = "Off";
+        localStorage.setItem("background", background);
+        document.body.classList.remove("background-effect");
         rebuildMenu();
-        alert("could not start background blur");
+        alert("could not start the background effect");
       });
-  } else if (!backgroundBlur && stopBlur) {
-    stopBlur.then((stop) => stop?.());
-    stopBlur = null;
+  } else if (on) {
+    backgroundEffect.then((effect) => effect?.setMode(background));
+  } else if (backgroundEffect) {
+    backgroundEffect.then((effect) => effect?.stop());
+    backgroundEffect = null;
   }
 }
 
@@ -294,7 +315,7 @@ window.addEventListener("keydown", function (ev) {
   if (ev.repeat) return;
   switch (ev.key.toLowerCase()) {
     case "b":
-      toggleBackgroundBlur();
+      cycleBackground();
       break;
     case "m":
       toggleMirror();
@@ -377,7 +398,7 @@ function setVideo(id) {
     });
 }
 setVideo(localStorage.getItem("deviceId") || undefined);
-updateBackgroundBlur();
+updateBackground();
 
 if (process.platform == "darwin") {
   let macMenu = new nw.Menu({ type: "menubar" });

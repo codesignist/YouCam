@@ -45,7 +45,7 @@ For more info; [nw-builder](https://github.com/nwutils/nw-builder)
 |---|---|
 | `M` | Toggle mirror |
 | `R` / `Shift+R` | Rotate clockwise / counter-clockwise |
-| `B` | Toggle background blur |
+| `B` | Background: off / blur / dark blur |
 | `T` | Toggle always on top |
 | `Q` / `Esc` | Exit |
 | Mouse wheel | Resize the window |
@@ -62,6 +62,7 @@ For more info; [nw-builder](https://github.com/nwutils/nw-builder)
 - [x] Video quality selection (480p / 720p / 1080p)
 - [x] Remember window position and size
 - [x] Background blur
+- [x] Dark blurred background
 
 ## Contributing
 

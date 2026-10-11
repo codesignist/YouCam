@@ -30,8 +30,8 @@ body:active {
   cursor: move;
 }
 
-/* The blur canvas sits exactly on top of the video and gets the same shape,
-   rotation and mirroring */
+/* The background effect canvas sits exactly on top of the video and gets
+   the same shape, rotation and mirroring */
 video,
 canvas {
   top: 50%;
@@ -54,7 +54,7 @@ canvas {
   display: none;
 }
 
-body.blur canvas {
+body.background-effect canvas {
   display: block;
 }
 

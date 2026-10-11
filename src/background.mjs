@@ -1,7 +1,8 @@
-// Background blur, the way Google Meet does it on the web: a MediaPipe
+// Background effects, the way Google Meet does them on the web: a MediaPipe
 // selfie segmentation model tells the person apart from the background on
-// every camera frame; the background is drawn blurred and the person sharp
-// on top. app.js only imports this module while blur is enabled.
+// every camera frame; the background is drawn blurred (and optionally
+// darkened) and the person sharp on top. app.js only imports this module
+// while an effect is on.
 import {
   FilesetResolver,
   ImageSegmenter,
@@ -16,6 +17,8 @@ const MODEL = new URL("../assets/models/selfie_segmenter.tflite", import.meta.ur
 // The model works on 256px input anyway, so handing it a downscaled frame is
 // much cheaper than letting it resize full camera frames (and masks) itself
 const MODEL_SIZE = 256;
+// How bright the background stays in "Dark blur" (1 = unchanged)
+const DARK_BRIGHTNESS = 0.4;
 
 async function createSegmenter() {
   // MediaPipe's Emscripten loader treats any page with process.versions.node
@@ -47,9 +50,10 @@ function resize(target, width, height) {
   }
 }
 
-// Starts drawing the blurred camera image onto canvas and resolves to a
-// function that stops it again
-export async function startBackgroundBlur(video, canvas) {
+// Starts drawing the camera image with the given background ("Blur" or
+// "Dark blur") onto canvas. Resolves to { setMode, stop }; switching modes keeps
+// the model running, so it is instant.
+export async function startBackground(video, canvas, mode) {
   const segmenter = await createSegmenter();
   const ctx = canvas.getContext("2d");
   const small = new OffscreenCanvas(1, 1);
@@ -69,7 +73,7 @@ export async function startBackgroundBlur(video, canvas) {
     const height = Math.round(canvas.clientHeight * devicePixelRatio);
     if (!width || !height || !video.videoWidth) return false;
     // Checked separately: the page's canvas keeps its size from an earlier
-    // start, while person is new (1x1) every time blur is turned on
+    // start, while person is new (1x1) every time an effect is turned on
     resize(canvas, width, height);
     resize(person, width, height);
     const scale = MODEL_SIZE / Math.max(width, height);
@@ -97,10 +101,14 @@ export async function startBackgroundBlur(video, canvas) {
     result.close();
     maskCtx.putImageData(maskImage, 0, 0);
 
-    // Background: the small frame scaled up and blurred, drawn a bit larger
-    // than the canvas so the blur doesn't fade out at the edges
+    // Background: the small frame scaled up and blurred (darkened in the same
+    // filter pass for "Dark blur"), drawn a bit larger than the canvas so
+    // the blur doesn't fade out at the edges
     const blur = Math.round(Math.max(width, height) / 50);
-    ctx.filter = `blur(${blur}px)`;
+    ctx.filter =
+      mode === "Dark blur"
+        ? `blur(${blur}px) brightness(${DARK_BRIGHTNESS})`
+        : `blur(${blur}px)`;
     ctx.drawImage(small, -blur, -blur, width + blur * 2, height + blur * 2);
     ctx.filter = "none";
     // Person: the sharp frame cut out by the (smoothly upscaled) mask
@@ -120,7 +128,7 @@ export async function startBackgroundBlur(video, canvas) {
       if (drawFrame()) video.style.visibility = "hidden";
     } catch (err) {
       // Fall back to the plain video underneath rather than a frozen frame
-      console.error("background blur:", err);
+      console.error("background:", err);
       stop();
       return;
     }
@@ -136,5 +144,10 @@ export async function startBackgroundBlur(video, canvas) {
     video.style.visibility = "";
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
-  return stop;
+  return {
+    setMode(next) {
+      mode = next;
+    },
+    stop,
+  };
 }

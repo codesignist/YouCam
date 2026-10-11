@@ -45,7 +45,7 @@ Daha fazla bilgi için; [nw-builder](https://github.com/nwutils/nw-builder)
 |---|---|
 | `M` | Ayna (mirror) aç/kapa |
 | `R` / `Shift+R` | Saat yönünde / tersine döndür |
-| `B` | Arka plan bulanıklaştırma aç/kapa |
+| `B` | Arka plan: kapalı / bulanık / koyu bulanık |
 | `T` | Always on top aç/kapa |
 | `Q` / `Esc` | Çıkış |
 | Fare tekerleği | Pencereyi büyüt / küçült |
@@ -62,6 +62,7 @@ Daha fazla bilgi için; [nw-builder](https://github.com/nwutils/nw-builder)
 - [x] Görüntü kalitesi seçimi (480p / 720p / 1080p)
 - [x] Pencere konumu ve boyutunun hatırlanması
 - [x] Arka plan bulanıklaştırma
+- [x] Koyu bulanık arka plan
 
 ## Katılım
 
