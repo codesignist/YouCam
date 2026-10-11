@@ -1,3 +1,1 @@
-allowBuilds:
-  nw: true
-  nw-builder: true
+allowBuilds: {}

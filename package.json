@@ -6,40 +6,24 @@
     "webcam",
     "gadget"
   ],
-  "main": "src/app.html",
-  "window": {
-    "show": false,
-    "always_on_top": true,
-    "frame": false,
-    "icon": "assets/icon.png",
-    "transparent": true,
-    "position": "center",
-    "show_in_taskbar": false,
-    "width": 250,
-    "height": 250
-  },
+  "private": true,
+  "type": "module",
   "scripts": {
-    "start": "nw .",
-    "build": "nwbuild package.json"
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "typecheck": "tsc --noEmit",
+    "tauri": "tauri"
   },
   "author": "codesignist",
   "license": "ISC",
   "packageManager": "pnpm@11.2.2",
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.1.0",
-    "nw": "^0.117.0"
+    "@tauri-apps/api": "^2.12.3"
   },
   "devDependencies": {
-    "nw-builder": "^4.21.4"
-  },
-  "nwbuild": {
-    "mode": "build",
-    "version": "0.117.0",
-    "flavor": "normal",
-    "platform": "win",
-    "arch": "x64",
-    "outDir": "./dist",
-    "srcDir": "src/**/* assets/**/* package.json node_modules/@mediapipe/tasks-vision/vision_bundle.mjs node_modules/@mediapipe/tasks-vision/wasm/vision_wasm_internal.js node_modules/@mediapipe/tasks-vision/wasm/vision_wasm_internal.wasm",
-    "glob": true
+    "@tauri-apps/cli": "^2.12.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4"
   }
 }

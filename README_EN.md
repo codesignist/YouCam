@@ -8,35 +8,36 @@ Advanced desktop webcam application for youtube streamers.
 
 ### Motivation
 
-Unfortunately in OBS studio you cant see yourself while having your camera recorded. For that you need an extra application or a referrence monitor. This app was made because of that extra application not existing and to try out NW.js
+Unfortunately in OBS studio you cant see yourself while having your camera recorded. For that you need an extra application or a referrence monitor. This app was made because of that extra application not existing and to try out NW.js. It has since moved to [Tauri](https://tauri.app/) and TypeScript.
 
 ### Install
 
-Install dependencies (downloads the NW.js binary):
+Requirements: [Node.js](https://nodejs.org/) with [pnpm](https://pnpm.io/), [Rust](https://rustup.rs/) and, on Windows, the "Desktop development with C++" part of Visual Studio Build Tools. WebView2 already comes with Windows 10/11. For other platforms see the [Tauri prerequisites](https://tauri.app/start/prerequisites/).
+
+Install dependencies:
 
 ```
 pnpm install
 ```
 
-To run the app:
+To run the app in development mode:
 
 ```
-pnpm start
+pnpm dev
 ```
 
-To package the app:
+To build the installer:
 
 ```
 pnpm build
 ```
 
-By default a win64 package is written to `./dist`. To target other platforms/architectures, edit the `nwbuild` section in `package.json`.
-For more info; [nw-builder](https://github.com/nwutils/nw-builder)
+The Windows installer is written to `src-tauri/target/release/bundle/nsis/` and the app itself to `src-tauri/target/release/youcam.exe`. Run `pnpm typecheck` to type-check.
 
 ## Used Package(s)
 
-- [NW.js](https://nwjs.io/) — desktop runtime
-- [nw-builder](https://github.com/nwutils/nw-builder) — packager
+- [Tauri](https://tauri.app/) — desktop runtime (uses the system WebView)
+- [TypeScript](https://www.typescriptlang.org/) and [Vite](https://vite.dev/) — language and build tool
 - [MediaPipe](https://ai.google.dev/edge/mediapipe) — background blur (selfie segmentation model, Apache-2.0)
 
 ## Keyboard Shortcuts

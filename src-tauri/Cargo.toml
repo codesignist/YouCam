@@ -1,0 +1,21 @@
+[package]
+name = "youcam"
+version = "1.2.0"
+description = "A webcam app for YouTube users"
+authors = ["codesignist"]
+license = "ISC"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# tray-icon: the tray menu; image-png: the tray icon is handed over as PNG
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+
+[profile.release]
+# A smaller executable; this app does little work on the Rust side
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
