@@ -73,6 +73,8 @@ Ekran ışığı, yüzünüzü bir monitörle aydınlatmak için ayrı bir ış�
 - [x] Ekran ışığı
 - [x] Kamera sorunlarını pencerede gösterme ve otomatik yeniden bağlanma
 - [x] Global kısayol ve tray ile gizle / göster (gizliyken kamera kapalı)
+- [x] Görüntü ayarları: parlaklık, kontrast, siyah-beyaz
+- [x] Şekle uyan renkli çerçeve
 
 ## Katılım
 

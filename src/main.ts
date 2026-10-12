@@ -17,6 +17,7 @@ import {
 import { TrayIcon } from "@tauri-apps/api/tray";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { register, unregisterAll } from "@tauri-apps/plugin-global-shortcut";
+import hexagonSvg from "../assets/hexagon.svg?raw";
 import trayIconUrl from "../assets/icon-tray.png?url";
 import type { BackgroundEffect, BackgroundMode } from "./background";
 import {
@@ -77,6 +78,48 @@ if (!hideShortcuts.some((s) => s.label === hideShortcut)) {
   hideShortcut = hideShortcuts[0].label;
 }
 let hidden = false;
+// Image adjustments: CSS filter factors, 1 leaves the picture as it is
+const levels = [
+  { label: "-20%", value: 0.8 },
+  { label: "Normal", value: 1 },
+  { label: "+20%", value: 1.2 },
+  { label: "+40%", value: 1.4 },
+];
+const savedLevel = (key: string) => {
+  const label = localStorage.getItem(key);
+  return levels.some((l) => l.label === label) ? (label as string) : "Normal";
+};
+let brightness = savedLevel("brightness");
+let contrast = savedLevel("contrast");
+let blackAndWhite = localStorage.getItem("blackAndWhite") === "true";
+// A coloured border along the shape, as streamers often put around their
+// camera. Green is YouCam's own.
+const borderColors = [
+  { label: "White", color: "#ffffff" },
+  { label: "Black", color: "#000000" },
+  { label: "Red", color: "#ff3b30" },
+  { label: "Yellow", color: "#ffcc00" },
+  { label: "Green", color: "#20be86" },
+  { label: "Cyan", color: "#00c7e6" },
+  { label: "Blue", color: "#2f7bff" },
+  { label: "Purple", color: "#8e5cff" },
+  { label: "Pink", color: "#ff2d92" },
+];
+// "Off", a label from borderColors, or "Custom" (picked with the colour picker)
+let borderColor = localStorage.getItem("borderColor") ?? "Off";
+if (!["Off", "Custom", ...borderColors.map((c) => c.label)].includes(borderColor)) {
+  borderColor = "Off";
+}
+const savedCustom = localStorage.getItem("borderCustomColor") ?? "";
+let customBorderColor = /^#[0-9a-f]{6}$/i.test(savedCustom) ? savedCustom : "#ffffff";
+// Width in percent of the window's shorter side, so it scales with the window
+const borderWidths = [
+  { label: "Thin", value: 2 },
+  { label: "Medium", value: 3.5 },
+  { label: "Thick", value: 5 },
+];
+let borderWidth = localStorage.getItem("borderWidth") ?? "";
+if (!borderWidths.some((w) => w.label === borderWidth)) borderWidth = "Medium";
 
 // Physical pixels per CSS pixel on the window's current monitor
 const pixelRatio = () => window.devicePixelRatio;
@@ -205,6 +248,80 @@ function buildMenuEntries(): MenuEntry[] {
         action: () => setBackground(bg),
       })),
     },
+    {
+      label: "Image",
+      submenu: [
+        {
+          label: "Brightness",
+          submenu: levels.map((l) => ({
+            label: l.label,
+            checked: brightness === l.label,
+            action: () => {
+              brightness = l.label;
+              localStorage.setItem("brightness", brightness);
+              updateImage();
+              rebuildMenu();
+            },
+          })),
+        },
+        {
+          label: "Contrast",
+          submenu: levels.map((l) => ({
+            label: l.label,
+            checked: contrast === l.label,
+            action: () => {
+              contrast = l.label;
+              localStorage.setItem("contrast", contrast);
+              updateImage();
+              rebuildMenu();
+            },
+          })),
+        },
+        // Not "&": Windows menus take it for a keyboard accelerator
+        {
+          label: "Black and white",
+          checked: blackAndWhite,
+          action: () => {
+            blackAndWhite = !blackAndWhite;
+            localStorage.setItem("blackAndWhite", String(blackAndWhite));
+            updateImage();
+            rebuildMenu();
+          },
+        },
+      ],
+    },
+    {
+      label: "Border",
+      submenu: [
+        {
+          label: "Off",
+          checked: borderColor === "Off",
+          action: () => setBorderColor("Off"),
+        },
+        { separator: true },
+        ...borderColors.map((c) => ({
+          label: c.label,
+          checked: borderColor === c.label,
+          action: () => setBorderColor(c.label),
+        })),
+        {
+          label: "Custom...",
+          checked: borderColor === "Custom",
+          action: pickBorderColor,
+        },
+        { separator: true },
+        ...borderWidths.map((w) => ({
+          label: w.label,
+          checked: borderWidth === w.label,
+          action: () => {
+            borderWidth = w.label;
+            localStorage.setItem("borderWidth", borderWidth);
+            updateBorder();
+            rebuildMenu();
+          },
+        })),
+      ],
+    },
     { label: "Mirror (M)", checked: isMirror, action: toggleMirror },
     {
       label: "Always on top (T)",
@@ -313,8 +430,13 @@ tray = await TrayIcon.new({
   },
 });
 
+// Where the menu was opened, for the colour picker of Border > Custom...
+let menuX = 0;
+let menuY = 0;
 document.body.addEventListener("contextmenu", (ev) => {
   ev.preventDefault();
+  menuX = ev.clientX;
+  menuY = ev.clientY;
   void menu?.popup();
 });
 
@@ -357,6 +479,77 @@ function toggleMirror(): void {
   updateVars();
   rebuildMenu();
 }
+
+// ---- Image and border ----------------------------------------------------------
+
+// The filter goes on the video and on the background effect's canvas
+function updateImage(): void {
+  const factor = (label: string) => levels.find((l) => l.label === label)?.value ?? 1;
+  const filters: string[] = [];
+  if (factor(brightness) !== 1) filters.push(`brightness(${factor(brightness)})`);
+  if (factor(contrast) !== 1) filters.push(`contrast(${factor(contrast)})`);
+  if (blackAndWhite) filters.push("grayscale(1)");
+  document.documentElement.style.setProperty("--filter", filters.join(" ") || "none");
+}
+updateImage();
+
+// The hexagon's outline, from the same file as its mask
+const hexagonPath = /\sd="([^"]+)"/.exec(hexagonSvg)?.[1] ?? "";
+const hexagonViewBox = /viewBox="([^"]+)"/.exec(hexagonSvg)?.[1] ?? "0 0 196 196";
+const hexagonSize = Number(hexagonViewBox.split(" ")[2]);
+
+// The hexagon can't take a border-radius shape's inset box-shadow, so its
+// border is a mask: the closed outline stroked twice as wide and cut to the
+// hexagon, which leaves the inner half, laid over the video like its mask
+function hexagonBorderMask(widthPercent: number): string {
+  const d = `${hexagonPath}Z`;
+  const stroke = ((widthPercent / 100) * hexagonSize * 2).toFixed(2);
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${hexagonSize}" height="${hexagonSize}" viewBox="${hexagonViewBox}">` +
+    `<clipPath id="c"><path d="${d}"/></clipPath>` +
+    `<path d="${d}" fill="none" stroke="#000" stroke-width="${stroke}" clip-path="url(#c)"/>` +
+    `</svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+function updateBorder(): void {
+  const color =
+    borderColor === "Custom"
+      ? customBorderColor
+      : borderColors.find((c) => c.label === borderColor)?.color;
+  document.body.classList.toggle("bordered", color !== undefined);
+  if (!color) return;
+  const width = (borderWidths.find((w) => w.label === borderWidth) ?? borderWidths[1])
+    .value;
+  const docStyle = document.documentElement.style;
+  docStyle.setProperty("--border-color", color);
+  docStyle.setProperty("--border-width", `${width}vmin`);
+  docStyle.setProperty("--border-mask", hexagonBorderMask(width));
+}
+updateBorder();
+
+function setBorderColor(label: string): void {
+  borderColor = label;
+  localStorage.setItem("borderColor", label);
+  updateBorder();
+  rebuildMenu();
+}
+
+const customColorInput = document.getElementById("custom-color") as HTMLInputElement;
+function pickBorderColor(): void {
+  // Undo the check mark the click toggled; it moves once a colour is picked
+  rebuildMenu();
+  customColorInput.value = customBorderColor;
+  customColorInput.style.left = `${menuX}px`;
+  customColorInput.style.top = `${menuY}px`;
+  customColorInput.click();
+}
+// Fires while changing the colour in the picker too, so the border follows
+customColorInput.addEventListener("input", () => {
+  customBorderColor = customColorInput.value;
+  localStorage.setItem("borderCustomColor", customBorderColor);
+  setBorderColor("Custom");
+});
 
 function toggleAlwaysOnTop(): void {
   alwaysOnTop = !alwaysOnTop;

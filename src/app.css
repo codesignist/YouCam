@@ -2,6 +2,7 @@
   --rotate: 0deg;
   --scaleX: 1;
   --radius: 50%;
+  --filter: none;
 }
 
 html,
@@ -15,6 +16,7 @@ body {
 body,
 video,
 canvas,
+#border,
 #status::before {
   transition: border-radius 0.5s, transform 0.5s;
 }
@@ -32,10 +34,11 @@ body:active {
 }
 
 /* The background effect canvas sits exactly on top of the video and gets
-   the same shape, rotation and mirroring; so does the backdrop of the
-   status message, whose text stays upright */
+   the same shape, rotation and mirroring; so do the border and the
+   backdrop of the status message, whose text stays upright */
 video,
 canvas,
+#border,
 #status::before {
   top: 50%;
   left: 50%;
@@ -51,6 +54,12 @@ canvas,
 video {
   object-fit: cover;
   object-position: bottom;
+}
+
+/* Brightness, contrast, black and white */
+video,
+canvas {
+  filter: var(--filter);
 }
 
 canvas {
@@ -70,6 +79,7 @@ body.camera-off canvas {
 /* Rotated by 90/270deg: swap the box so the video still fills the window */
 body.sideways video,
 body.sideways canvas,
+body.sideways #border,
 body.sideways #status::before {
   width: 100vh;
   height: 100vw;
@@ -82,6 +92,38 @@ body.hexagon #status::before {
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-size: cover;
   border-radius: 0;
+}
+
+/* Drawn over the edge of the video, so the picture keeps its size */
+#border {
+  display: none;
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-color);
+}
+
+body.bordered #border {
+  display: block;
+}
+
+/* A hexagon's border can't be a box-shadow; main.ts makes a mask for it */
+body.hexagon #border {
+  box-shadow: none;
+  border-radius: 0;
+  background: var(--border-color);
+  -webkit-mask-image: var(--border-mask);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: cover;
+}
+
+/* Only there to open the colour picker for Border > Custom...; it is moved
+   to where the menu was opened so the picker appears next to it */
+#custom-color {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* What is wrong with the camera, or a short notice, in place of alert().

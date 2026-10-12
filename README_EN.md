@@ -73,6 +73,8 @@ The screen light is a separate light window for lighting your face with a monito
 - [x] Screen light
 - [x] Camera problems shown in the window, automatic reconnect
 - [x] Hide / show with a global shortcut and the tray (the camera is off while hidden)
+- [x] Image adjustments: brightness, contrast, black and white
+- [x] Coloured border that follows the shape
 
 ## Contributing
 
