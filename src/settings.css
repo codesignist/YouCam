@@ -1,0 +1,479 @@
+/* The settings window. Quiet controls in Windows' own type, YouCam's green
+   for what is on; the shape tiles are the one place that shows off. */
+
+:root {
+  color-scheme: light dark;
+  --bg: #f2f5f3;
+  --surface: #ffffff;
+  --ink: #16201b;
+  --muted: #5c6a63;
+  --line: #d3ddd8;
+  --track: #e1e8e4;
+  --accent: #0d8a5e; /* text and outlines: YouCam's green, darkened to read on light */
+  --accent-fill: #20be86; /* YouCam's green */
+  --on-accent: #ffffff;
+  --label-width: 112px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121816;
+    --surface: #1c2421;
+    --ink: #e4ece7;
+    --muted: #8f9e97;
+    --line: #2c3733;
+    --track: #252f2b;
+    --accent: #3ddba3;
+    --on-accent: #08241a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+  font: 13px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  padding: 8px 22px 28px;
+}
+
+section {
+  padding-top: 22px;
+}
+
+h2,
+.heading {
+  margin: 0 0 10px;
+}
+
+h2 {
+  font: 600 15px/1.3 "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.heading h2 {
+  margin: 0;
+}
+
+/* A label and its control side by side */
+.row {
+  display: grid;
+  grid-template-columns: var(--label-width) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+}
+
+/* Text on the left, a switch at the end */
+.row.toggle {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+/* A label with a hint under it */
+.row.toggle > div {
+  padding: 6px 0;
+}
+
+.label,
+label {
+  color: var(--ink);
+}
+
+.hint,
+.error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.error {
+  color: #d1342b;
+}
+
+@media (prefers-color-scheme: dark) {
+  .error {
+    color: #ff7a6e;
+  }
+}
+
+/* Under a control, lined up with it rather than with its label */
+.indented {
+  margin: -4px 0 6px calc(var(--label-width) + 12px);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- Select and buttons ---- */
+
+select,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+select {
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.buttons button {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.buttons button:hover {
+  border-color: var(--muted);
+}
+
+.buttons svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+button.quiet {
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+}
+
+button.quiet:disabled {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+/* ---- Segmented control: radio buttons that read as one control ---- */
+
+.segmented {
+  display: flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--track);
+}
+
+.segmented label {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.segmented input,
+.shapes input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented span {
+  display: block;
+  padding: 5px 4px;
+  border-radius: 6px;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.segmented label:hover span {
+  color: var(--ink);
+}
+
+.segmented input:checked + span {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ---- Switch ---- */
+
+.switch {
+  appearance: none;
+  position: relative;
+  width: 40px;
+  height: 22px;
+  margin: 0;
+  border-radius: 11px;
+  background: var(--track);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition: background-color 0.15s;
+}
+
+.switch::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.15s, background-color 0.15s;
+}
+
+.switch:checked {
+  background: var(--accent-fill);
+  box-shadow: none;
+}
+
+.switch:checked::before {
+  background: var(--on-accent);
+  transform: translateX(18px);
+}
+
+/* ---- Slider ---- */
+
+.slider {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider output {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+input[type="range"] {
+  appearance: none;
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  background: none;
+  --fill: 50%;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    var(--accent-fill) var(--fill),
+    var(--track) var(--fill)
+  );
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border: 2px solid var(--accent-fill);
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+input[type="range"]:disabled {
+  opacity: 0.4;
+}
+
+/* ---- Shape tiles ---- */
+
+.shapes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.shapes label {
+  position: relative;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 4px 8px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--muted);
+}
+
+.tile svg {
+  width: 52px;
+  height: 52px;
+  overflow: visible;
+}
+
+/* The tiles wear the border the camera has, so shape and border can be
+   judged together */
+.tile .shape {
+  fill: url(#lens);
+  stroke: var(--tile-border, none);
+  stroke-width: var(--tile-border-width, 0);
+  vector-effect: non-scaling-stroke;
+}
+
+.shapes label:hover .tile {
+  color: var(--ink);
+}
+
+.shapes input:checked + .tile {
+  box-shadow: inset 0 0 0 2px var(--accent);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.shapes input:focus-visible + .tile {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- Border colours ---- */
+
+/* One row across the window, however wide it is */
+.swatches {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  margin: 4px 0 8px;
+}
+
+.swatch {
+  position: relative;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+}
+
+.swatch[aria-pressed="true"] {
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 0.15),
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--ink);
+}
+
+/* No border: an empty swatch, struck through */
+.swatch.off {
+  background:
+    linear-gradient(
+      135deg,
+      transparent calc(50% - 1px),
+      var(--muted) calc(50% - 1px),
+      var(--muted) calc(50% + 1px),
+      transparent calc(50% + 1px)
+    ),
+    var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.swatch.off[aria-pressed="true"] {
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--ink);
+}
+
+/* Any colour: the last one picked, ringed with the colour wheel */
+.swatch.custom {
+  background:
+    radial-gradient(circle, var(--swatch) 0 6px, transparent 6.5px),
+    conic-gradient(#ff3b30, #ffcc00, #20be86, #00c7e6, #2f7bff, #8e5cff, #ff2d92, #ff3b30);
+  cursor: pointer;
+}
+
+.swatch.custom input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.swatch.custom:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- Keys ---- */
+
+.keys {
+  display: grid;
+  grid-template-columns: var(--label-width) minmax(0, 1fr);
+  gap: 6px 12px;
+  margin: 8px 0 0;
+}
+
+.keys dt {
+  color: var(--muted);
+}
+
+.keys dd {
+  margin: 0;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 20px;
+  padding: 0 5px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

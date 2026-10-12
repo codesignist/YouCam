@@ -1,5 +1,6 @@
 // The camera window: a frameless, shaped webcam view with a right-click /
-// tray menu and keyboard shortcuts.
+// tray menu for what is used most, keyboard shortcuts, and a settings window
+// (settings.ts) for everything else.
 import {
   availableMonitors,
   getCurrentWindow,
@@ -14,6 +15,7 @@ import {
   PredefinedMenuItem,
   Submenu,
 } from "@tauri-apps/api/menu";
+import { emit, listen } from "@tauri-apps/api/event";
 import { TrayIcon } from "@tauri-apps/api/tray";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { register, unregisterAll } from "@tauri-apps/plugin-global-shortcut";
@@ -27,6 +29,23 @@ import {
   saveBounds,
   type Bounds,
 } from "./common";
+import {
+  CHANGE,
+  SETTINGS_READY,
+  STATE,
+  aspectRatios,
+  backgrounds,
+  borderColors,
+  borderWidthRange,
+  hideShortcuts,
+  isColor,
+  pictureRange,
+  qualities,
+  shapes,
+  type Background,
+  type Change,
+  type State,
+} from "./options";
 import "./app.css";
 
 const win = getCurrentWindow();
@@ -42,84 +61,42 @@ let deg = normalizeDeg(parseInt(localStorage.getItem("deg") ?? "", 10) || 0);
 // turns 90deg the short way (270 -> 360 instead of spinning back to 0)
 let rotation = deg;
 let shape = localStorage.getItem("shape") ?? "Hexagon";
-const dimensions = [240, 360, 480]; // logical pixels
 let aspectRatio = localStorage.getItem("aspectRatio") ?? "1:1";
-const aspectRatios = ["None", "1:1", "3:4", "4:3", "16:9"];
 let videoDevices: MediaDeviceInfo[] = [];
 let currentDeviceId: string | undefined;
-const qualities = [
-  { label: "480p", width: 640, height: 480 },
-  { label: "720p", width: 1280, height: 720 },
-  { label: "1080p", width: 1920, height: 1080 },
-];
 let quality = localStorage.getItem("quality") ?? "720p";
-type Background = "Off" | BackgroundMode;
-const backgrounds: Background[] = ["Off", "Blur", "Dark blur"];
 let background = localStorage.getItem("background") as Background;
 if (!backgrounds.includes(background)) background = "Blur";
 let light: WebviewWindow | null = null; // the screen light while it is open
 let lightOpening = false;
-const shapes = [
-  { label: "Square", val: "0.1px" },
-  { label: "Rounded", val: "16px" },
-  { label: "Circle", val: "50%" },
-  { label: "Hexagon", val: "50%" },
-];
-// Hides and shows the window from anywhere, e.g. from a game; accelerators
-// in the global shortcut plugin's syntax
-const hideShortcuts = [
-  { label: "Ctrl+Shift+Y", accelerator: "Control+Shift+Y" },
-  { label: "Ctrl+Alt+Y", accelerator: "Control+Alt+Y" },
-  { label: "Scroll Lock", accelerator: "ScrollLock" },
-  { label: "Off" },
-];
 let hideShortcut = localStorage.getItem("hideShortcut") ?? "";
 if (!hideShortcuts.some((s) => s.label === hideShortcut)) {
   hideShortcut = hideShortcuts[0].label;
 }
+let shortcutTaken = false; // by another app
 let hidden = false;
-// Image adjustments: CSS filter factors, 1 leaves the picture as it is
-const levels = [
-  { label: "-20%", value: 0.8 },
-  { label: "Normal", value: 1 },
-  { label: "+20%", value: 1.2 },
-  { label: "+40%", value: 1.4 },
-];
-const savedLevel = (key: string) => {
-  const label = localStorage.getItem(key);
-  return levels.some((l) => l.label === label) ? (label as string) : "Normal";
-};
-let brightness = savedLevel("brightness");
-let contrast = savedLevel("contrast");
+let brightness = savedNumber("brightness", pictureRange, 100);
+let contrast = savedNumber("contrast", pictureRange, 100);
 let blackAndWhite = localStorage.getItem("blackAndWhite") === "true";
-// A coloured border along the shape, as streamers often put around their
-// camera. Green is YouCam's own.
-const borderColors = [
-  { label: "White", color: "#ffffff" },
-  { label: "Black", color: "#000000" },
-  { label: "Red", color: "#ff3b30" },
-  { label: "Yellow", color: "#ffcc00" },
-  { label: "Green", color: "#20be86" },
-  { label: "Cyan", color: "#00c7e6" },
-  { label: "Blue", color: "#2f7bff" },
-  { label: "Purple", color: "#8e5cff" },
-  { label: "Pink", color: "#ff2d92" },
-];
-// "Off", a label from borderColors, or "Custom" (picked with the colour picker)
-let borderColor = localStorage.getItem("borderColor") ?? "Off";
-if (!["Off", "Custom", ...borderColors.map((c) => c.label)].includes(borderColor)) {
-  borderColor = "Off";
+// "off" or a colour; the last one picked in the settings window is kept for
+// its custom swatch
+let borderColor = savedColor("borderColor") ?? "off";
+let customBorderColor = savedColor("borderCustomColor") ?? "#ffffff";
+let borderWidth = savedNumber("borderWidth", borderWidthRange, borderWidthRange.initial);
+
+function savedNumber(
+  key: string,
+  range: { min: number; max: number },
+  fallback: number
+): number {
+  const value = parseFloat(localStorage.getItem(key) ?? "");
+  return Number.isFinite(value) ? Math.min(Math.max(value, range.min), range.max) : fallback;
 }
-const savedCustom = localStorage.getItem("borderCustomColor") ?? "";
-let customBorderColor = /^#[0-9a-f]{6}$/i.test(savedCustom) ? savedCustom : "#ffffff";
-// Width in percent of the window's shorter side, so it scales with the window
-const borderWidths = [
-  { label: "Thin", value: 2 },
-  { label: "Medium", value: 3.5 },
-  { label: "Thick", value: 5 },
-];
-let borderWidth = localStorage.getItem("borderWidth") ?? "";
-if (!borderWidths.some((w) => w.label === borderWidth)) borderWidth = "Medium";
+
+function savedColor(key: string): string | undefined {
+  const value = localStorage.getItem(key);
+  return isColor(value) ? value : undefined;
+}
 
 // Physical pixels per CSS pixel on the window's current monitor
 const pixelRatio = () => window.devicePixelRatio;
@@ -170,6 +147,7 @@ interface MenuEntry {
   separator?: boolean;
 }
 
+// Only what is used most; everything else is in the settings window
 function buildMenuEntries(): MenuEntry[] {
   return [
     { label: "YouCam", action: () => void setHidden(false) },
@@ -182,65 +160,6 @@ function buildMenuEntries(): MenuEntry[] {
       })),
     },
     {
-      label: "Quality",
-      submenu: qualities.map((q) => ({
-        label: q.label,
-        checked: quality === q.label,
-        action: () => {
-          quality = q.label;
-          localStorage.setItem("quality", quality);
-          setVideo(currentDeviceId);
-          rebuildMenu();
-        },
-      })),
-    },
-    {
-      label: "Shape",
-      submenu: shapes.map((s) => ({
-        label: s.label,
-        checked: shape === s.label,
-        action: () => {
-          shape = s.label;
-          localStorage.setItem("shape", shape);
-          updateVars();
-          rebuildMenu();
-        },
-      })),
-    },
-    {
-      label: "Dimensions",
-      submenu: dimensions.map((dim) => ({
-        label: `${dim}x${dim}`,
-        // Derived from the window so it stays right after a manual or wheel
-        // resize and across restarts
-        checked: Math.round(window.innerWidth) === dim,
-        action: () => {
-          const width = dim * pixelRatio();
-          resizeWindow(width, heightForWidth(width, width));
-        },
-      })),
-    },
-    {
-      label: "Aspect Ratio",
-      submenu: aspectRatios.map((ratio) => ({
-        label: ratio,
-        checked: aspectRatio === ratio,
-        action: () => {
-          aspectRatio = ratio;
-          localStorage.setItem("aspectRatio", ratio);
-          updateAspectRatio();
-          rebuildMenu();
-        },
-      })),
-    },
-    {
-      label: "Rotate",
-      submenu: [
-        { label: "Rotate CW (R)", action: () => rotate(90) },
-        { label: "Rotate CCW (Shift+R)", action: () => rotate(-90) },
-      ],
-    },
-    {
       label: "Background (B)",
       submenu: backgrounds.map((bg) => ({
         label: bg,
@@ -248,102 +167,16 @@ function buildMenuEntries(): MenuEntry[] {
         action: () => setBackground(bg),
       })),
     },
-    {
-      label: "Image",
-      submenu: [
-        {
-          label: "Brightness",
-          submenu: levels.map((l) => ({
-            label: l.label,
-            checked: brightness === l.label,
-            action: () => {
-              brightness = l.label;
-              localStorage.setItem("brightness", brightness);
-              updateImage();
-              rebuildMenu();
-            },
-          })),
-        },
-        {
-          label: "Contrast",
-          submenu: levels.map((l) => ({
-            label: l.label,
-            checked: contrast === l.label,
-            action: () => {
-              contrast = l.label;
-              localStorage.setItem("contrast", contrast);
-              updateImage();
-              rebuildMenu();
-            },
-          })),
-        },
-        // Not "&": Windows menus take it for a keyboard accelerator
-        {
-          label: "Black and white",
-          checked: blackAndWhite,
-          action: () => {
-            blackAndWhite = !blackAndWhite;
-            localStorage.setItem("blackAndWhite", String(blackAndWhite));
-            updateImage();
-            rebuildMenu();
-          },
-        },
-      ],
-    },
-    {
-      label: "Border",
-      submenu: [
-        {
-          label: "Off",
-          checked: borderColor === "Off",
-          action: () => setBorderColor("Off"),
-        },
-        { separator: true },
-        ...borderColors.map((c) => ({
-          label: c.label,
-          checked: borderColor === c.label,
-          action: () => setBorderColor(c.label),
-        })),
-        {
-          label: "Custom...",
-          checked: borderColor === "Custom",
-          action: pickBorderColor,
-        },
-        { separator: true },
-        ...borderWidths.map((w) => ({
-          label: w.label,
-          checked: borderWidth === w.label,
-          action: () => {
-            borderWidth = w.label;
-            localStorage.setItem("borderWidth", borderWidth);
-            updateBorder();
-            rebuildMenu();
-          },
-        })),
-      ],
-    },
     { label: "Mirror (M)", checked: isMirror, action: toggleMirror },
-    {
-      label: "Always on top (T)",
-      checked: alwaysOnTop,
-      action: toggleAlwaysOnTop,
-    },
     {
       label: "Screen light (L)",
       checked: light !== null,
       action: toggleScreenLight,
     },
     { separator: true },
+    { label: "Settings... (S)", action: () => void openSettings() },
     // Only the tray menu is there while the window is hidden
     { label: hidden ? "Show" : "Hide (H)", action: () => void setHidden(!hidden) },
-    {
-      label: "Hide/show shortcut",
-      submenu: hideShortcuts.map((s) => ({
-        label: s.label,
-        checked: hideShortcut === s.label,
-        action: () => setHideShortcut(s.label),
-      })),
-    },
     { separator: true },
     { label: "Exit (Q)", action: () => win.close() },
   ];
@@ -370,7 +203,13 @@ async function createItem(
     item = await CheckMenuItem.new({
       text: entry.label ?? "",
       checked: entry.checked,
-      action: entry.action,
+      action: () => {
+        // Clicking toggles the mark by itself, so put the marks back where
+        // the state says even if the click changed nothing
+        menuSignature = "";
+        entry.action?.();
+        rebuildMenu();
+      },
     });
   } else {
     item = await MenuItem.new({ text: entry.label ?? "", action: entry.action });
@@ -384,19 +223,25 @@ let menuResources: MenuResource[] = [];
 let tray: TrayIcon | undefined;
 let menuQueue: Promise<void> = Promise.resolve();
 let rebuildPending = false;
+// The menu as last built, without its actions
+let menuSignature = "";
 
 // Rebuilds run one after another, and several requests made while one is
-// waiting collapse into a single rebuild with the latest state
+// waiting collapse into a single rebuild with the latest state. Most changes
+// (e.g. dragging a slider in the settings window) don't show in the menu
+// and don't rebuild it.
 function rebuildMenu(): Promise<void> {
   if (rebuildPending) return menuQueue;
   rebuildPending = true;
   menuQueue = menuQueue
     .then(async () => {
       rebuildPending = false;
+      const entries = buildMenuEntries();
+      const signature = JSON.stringify(entries);
+      if (signature === menuSignature) return;
+      menuSignature = signature;
       const created: MenuResource[] = [];
-      const items = await Promise.all(
-        buildMenuEntries().map((e) => createItem(e, created))
-      );
+      const items = await Promise.all(entries.map((e) => createItem(e, created)));
       const next = await Menu.new({ items });
       created.push(next);
       menu = next;
@@ -430,13 +275,8 @@ tray = await TrayIcon.new({
   },
 });
 
-// Where the menu was opened, for the colour picker of Border > Custom...
-let menuX = 0;
-let menuY = 0;
 document.body.addEventListener("contextmenu", (ev) => {
   ev.preventDefault();
-  menuX = ev.clientX;
-  menuY = ev.clientY;
   void menu?.popup();
 });
 
@@ -459,39 +299,67 @@ function rotate(rotateBy: number): void {
   // The swapped size already matches the reversed ratio
   const { width, height } = bounds();
   resizeWindow(height, width);
-  rebuildMenu();
+  stateChanged();
 }
 
 function updateVars(): void {
   const docStyle = document.documentElement.style;
   docStyle.setProperty("--scaleX", isMirror ? "-1" : "1");
   docStyle.setProperty("--rotate", `${rotation}deg`);
-  const shapeVal = shapes.find((s) => s.label === shape)?.val ?? "50%";
-  docStyle.setProperty("--radius", shapeVal);
+  const radius = shapes.find((s) => s.label === shape)?.radius ?? "50%";
+  docStyle.setProperty("--radius", radius);
   document.body.classList.toggle("hexagon", shape === "Hexagon");
   document.body.classList.toggle("sideways", deg % 180 !== 0);
 }
 updateVars();
 
-function toggleMirror(): void {
-  isMirror = !isMirror;
+function setMirror(value: boolean): void {
+  isMirror = value;
   localStorage.setItem("isMirror", String(isMirror));
   updateVars();
-  rebuildMenu();
+  stateChanged();
+}
+
+function toggleMirror(): void {
+  setMirror(!isMirror);
+}
+
+function setShape(value: string): void {
+  shape = value;
+  localStorage.setItem("shape", shape);
+  updateVars();
+  stateChanged();
 }
 
 // ---- Image and border ----------------------------------------------------------
 
 // The filter goes on the video and on the background effect's canvas
 function updateImage(): void {
-  const factor = (label: string) => levels.find((l) => l.label === label)?.value ?? 1;
   const filters: string[] = [];
-  if (factor(brightness) !== 1) filters.push(`brightness(${factor(brightness)})`);
-  if (factor(contrast) !== 1) filters.push(`contrast(${factor(contrast)})`);
+  if (brightness !== 100) filters.push(`brightness(${brightness}%)`);
+  if (contrast !== 100) filters.push(`contrast(${contrast}%)`);
   if (blackAndWhite) filters.push("grayscale(1)");
   document.documentElement.style.setProperty("--filter", filters.join(" ") || "none");
 }
 updateImage();
+
+function setPicture(
+  key: "brightness" | "contrast" | "blackAndWhite",
+  value: number | boolean
+): void {
+  if (key === "blackAndWhite") {
+    blackAndWhite = value === true;
+    localStorage.setItem(key, String(blackAndWhite));
+  } else {
+    const percent = Math.min(Math.max(Number(value), pictureRange.min), pictureRange.max);
+    if (!Number.isFinite(percent)) return;
+    if (key === "brightness") brightness = percent;
+    else contrast = percent;
+    localStorage.setItem(key, String(percent));
+  }
+  updateImage();
+  stateChanged();
+}
 
 // The hexagon's outline, from the same file as its mask
 const hexagonPath = /\sd="([^"]+)"/.exec(hexagonSvg)?.[1] ?? "";
@@ -513,49 +381,46 @@ function hexagonBorderMask(widthPercent: number): string {
 }
 
 function updateBorder(): void {
-  const color =
-    borderColor === "Custom"
-      ? customBorderColor
-      : borderColors.find((c) => c.label === borderColor)?.color;
-  document.body.classList.toggle("bordered", color !== undefined);
-  if (!color) return;
-  const width = (borderWidths.find((w) => w.label === borderWidth) ?? borderWidths[1])
-    .value;
+  const on = borderColor !== "off";
+  document.body.classList.toggle("bordered", on);
+  if (!on) return;
   const docStyle = document.documentElement.style;
-  docStyle.setProperty("--border-color", color);
-  docStyle.setProperty("--border-width", `${width}vmin`);
-  docStyle.setProperty("--border-mask", hexagonBorderMask(width));
+  docStyle.setProperty("--border-color", borderColor);
+  docStyle.setProperty("--border-width", `${borderWidth}vmin`);
+  docStyle.setProperty("--border-mask", hexagonBorderMask(borderWidth));
 }
 updateBorder();
 
-function setBorderColor(label: string): void {
-  borderColor = label;
-  localStorage.setItem("borderColor", label);
+function setBorderColor(value: string): void {
+  if (value !== "off" && !isColor(value)) return;
+  borderColor = value;
+  localStorage.setItem("borderColor", borderColor);
+  if (isColor(value) && !borderColors.some((c) => c.color === value)) {
+    customBorderColor = value;
+    localStorage.setItem("borderCustomColor", customBorderColor);
+  }
   updateBorder();
-  rebuildMenu();
+  stateChanged();
 }
 
-const customColorInput = document.getElementById("custom-color") as HTMLInputElement;
-function pickBorderColor(): void {
-  // Undo the check mark the click toggled; it moves once a colour is picked
-  rebuildMenu();
-  customColorInput.value = customBorderColor;
-  customColorInput.style.left = `${menuX}px`;
-  customColorInput.style.top = `${menuY}px`;
-  customColorInput.click();
+function setBorderWidth(value: number): void {
+  const { min, max } = borderWidthRange;
+  if (!Number.isFinite(value)) return;
+  borderWidth = Math.min(Math.max(value, min), max);
+  localStorage.setItem("borderWidth", String(borderWidth));
+  updateBorder();
+  stateChanged();
 }
-// Fires while changing the colour in the picker too, so the border follows
-customColorInput.addEventListener("input", () => {
-  customBorderColor = customColorInput.value;
-  localStorage.setItem("borderCustomColor", customBorderColor);
-  setBorderColor("Custom");
-});
 
-function toggleAlwaysOnTop(): void {
-  alwaysOnTop = !alwaysOnTop;
+function setAlwaysOnTop(value: boolean): void {
+  alwaysOnTop = value;
   localStorage.setItem("alwaysOnTop", String(alwaysOnTop));
   void win.setAlwaysOnTop(alwaysOnTop);
-  rebuildMenu();
+  stateChanged();
+}
+
+function toggleAlwaysOnTop(): void {
+  setAlwaysOnTop(!alwaysOnTop);
 }
 
 // ---- Screen light ------------------------------------------------------------
@@ -582,7 +447,7 @@ function toggleScreenLight(): void {
   void w.once("tauri://created", () => {
     lightOpening = false;
     light = w;
-    rebuildMenu();
+    stateChanged();
   });
   void w.once("tauri://error", (e) => {
     lightOpening = false;
@@ -590,9 +455,152 @@ function toggleScreenLight(): void {
   });
   void w.once("tauri://destroyed", () => {
     light = null;
-    rebuildMenu();
+    stateChanged();
   });
 }
+
+// ---- Settings window -----------------------------------------------------------
+
+// Logical pixels
+const SETTINGS_WIDTH = 400;
+const SETTINGS_HEIGHT = 680;
+
+// Opens it next to the camera window, so changes can be seen while making
+// them, or brings it to the front if it is open (also after a dev-server
+// reload of this page)
+async function openSettings(): Promise<void> {
+  const open = await WebviewWindow.getByLabel("settings");
+  if (open) {
+    await open.unminimize();
+    await open.setFocus();
+    return;
+  }
+  const w = new WebviewWindow("settings", {
+    url: "settings.html",
+    title: "YouCam Settings",
+    width: SETTINGS_WIDTH,
+    height: SETTINGS_HEIGHT,
+    minWidth: 360,
+    minHeight: 360,
+    resizable: true,
+    visible: false, // settings.ts shows it once it has the state
+  });
+  void w.once("tauri://created", async () => {
+    const at = await besideCamera();
+    if (at) await w.setPosition(at);
+  });
+  void w.once("tauri://error", (e) => console.error("settings:", e.payload));
+}
+
+// Beside the camera window on whichever side has room, top edges lined up,
+// within the monitor; centred on it if neither side has room
+async function besideCamera(): Promise<PhysicalPosition | undefined> {
+  monitors = await availableMonitors();
+  const b = bounds();
+  const monitor = monitorAt(monitors, b.x + b.width / 2, b.y + b.height / 2) ?? monitors[0];
+  if (!monitor) return undefined;
+  const { position: area, size: areaSize } = monitor.workArea;
+  const width = SETTINGS_WIDTH * monitor.scaleFactor;
+  const height = SETTINGS_HEIGHT * monitor.scaleFactor;
+  const gap = 16 * monitor.scaleFactor;
+  let x = b.x + b.width + gap;
+  if (x + width > area.x + areaSize.width) x = b.x - gap - width;
+  if (x < area.x) x = area.x + (areaSize.width - width) / 2;
+  const y = Math.min(Math.max(b.y, area.y), area.y + areaSize.height - height);
+  return new PhysicalPosition(Math.round(x), Math.round(Math.max(y, area.y)));
+}
+
+function currentState(): State {
+  return {
+    deviceId: currentDeviceId ?? "",
+    quality,
+    mirror: isMirror,
+    shape,
+    aspectRatio,
+    background,
+    brightness,
+    contrast,
+    blackAndWhite,
+    borderColor,
+    borderWidth,
+    alwaysOnTop,
+    screenLight: light !== null,
+    hideShortcut,
+    cameras: videoDevices.map((device, i) => ({
+      deviceId: device.deviceId,
+      label: device.label || `Camera ${i + 1}`,
+    })),
+    width: Math.round(window.innerWidth),
+    height: Math.round(window.innerHeight),
+    customBorderColor,
+    shortcutTaken,
+  };
+}
+
+// Something changed: update the menu and the settings window. Changes made
+// together (e.g. by one drag of a slider) are sent once.
+let statePending = false;
+function stateChanged(): void {
+  rebuildMenu();
+  if (statePending) return;
+  statePending = true;
+  setTimeout(() => {
+    statePending = false;
+    void emit(STATE, currentState());
+  });
+}
+
+function applyChange(change: Change): void {
+  switch (change.key) {
+    case "deviceId":
+      setVideo(change.value || undefined);
+      break;
+    case "quality":
+      setQuality(change.value);
+      break;
+    case "mirror":
+      setMirror(change.value);
+      break;
+    case "shape":
+      setShape(change.value);
+      break;
+    case "aspectRatio":
+      setAspectRatio(change.value);
+      break;
+    case "background":
+      setBackground(change.value);
+      break;
+    case "brightness":
+    case "contrast":
+    case "blackAndWhite":
+      setPicture(change.key, change.value);
+      break;
+    case "borderColor":
+      setBorderColor(change.value);
+      break;
+    case "borderWidth":
+      setBorderWidth(change.value);
+      break;
+    case "alwaysOnTop":
+      setAlwaysOnTop(change.value);
+      break;
+    case "screenLight":
+      if (change.value !== (light !== null)) toggleScreenLight();
+      break;
+    case "hideShortcut":
+      setHideShortcut(change.value);
+      break;
+    case "rotate":
+      rotate(change.value);
+      break;
+    case "size":
+      setWidth(change.value);
+      break;
+  }
+}
+
+await listen(SETTINGS_READY, () => void emit(STATE, currentState()));
+await listen<Change>(CHANGE, ({ payload }) => applyChange(payload));
 
 // ---- Messages ----------------------------------------------------------------
 
@@ -657,7 +665,7 @@ async function setHidden(value: boolean, focus = true): Promise<void> {
     return;
   }
   hidden = value;
-  rebuildMenu();
+  stateChanged();
   setVideo(currentDeviceId); // stops the camera while hidden
   if (hidden) {
     await win.hide();
@@ -696,36 +704,41 @@ function applyHideShortcut(): void {
     await unregisterAll().catch((err) => console.error("shortcut:", err));
     const { label, accelerator } =
       hideShortcuts.find((s) => s.label === hideShortcut) ?? hideShortcuts[0];
-    if (!accelerator) return;
-    try {
-      await register(accelerator, (event) => {
-        if (event.state === "Pressed") void setHidden(!hidden, false);
-      });
-    } catch (err) {
-      console.error("shortcut:", err);
-      showNotice({
-        title: `${label} is taken`,
-        hint: "Another app uses it; pick another under Hide/show shortcut.",
-      });
+    shortcutTaken = false;
+    if (accelerator) {
+      try {
+        await register(accelerator, (event) => {
+          if (event.state === "Pressed") void setHidden(!hidden, false);
+        });
+      } catch (err) {
+        console.error("shortcut:", err);
+        shortcutTaken = true;
+        showNotice({
+          title: `${label} is taken`,
+          hint: "Another app uses it; pick another in Settings.",
+        });
+      }
     }
+    stateChanged();
   });
 }
 applyHideShortcut();
 
 function setHideShortcut(label: string): void {
+  if (!hideShortcuts.some((s) => s.label === label)) return;
   hideShortcut = label;
   localStorage.setItem("hideShortcut", label);
   applyHideShortcut();
-  rebuildMenu();
 }
 
 // ---- Background effects ------------------------------------------------------
 
 function setBackground(value: Background): void {
+  if (!backgrounds.includes(value)) return;
   background = value;
   localStorage.setItem("background", background);
   updateBackground();
-  rebuildMenu();
+  stateChanged();
 }
 
 // B steps through Off -> Blur -> Dark blur
@@ -752,7 +765,7 @@ function updateBackground(): void {
         background = "Off";
         localStorage.setItem("background", background);
         document.body.classList.remove("background-effect");
-        rebuildMenu();
+        stateChanged();
         showNotice({
           title: "Background effect failed",
           hint: "It is off for now; press B to try again.",
@@ -792,6 +805,9 @@ window.addEventListener("keydown", (ev) => {
     case "h":
       void setHidden(true);
       break;
+    case "s":
+      void openSettings();
+      break;
     case "q":
     case "escape":
       void win.close();
@@ -806,7 +822,7 @@ function refreshDevices(): void {
     .enumerateDevices()
     .then((devices) => {
       videoDevices = devices.filter((device) => device.kind === "videoinput");
-      rebuildMenu();
+      stateChanged();
     })
     .catch((err) => {
       console.error(`${err.name}: ${err.message}`);
@@ -827,7 +843,7 @@ function setVideo(id?: string, orDefault = false): void {
   // the menu checks
   if (id !== currentDeviceId) {
     currentDeviceId = id;
-    rebuildMenu();
+    stateChanged();
   }
   stopWaiting();
   if (currentStream) stopMediaTracks(currentStream);
@@ -1008,6 +1024,14 @@ navigator.mediaDevices.addEventListener("devicechange", () => {
 });
 refreshDevices();
 
+function setQuality(value: string): void {
+  if (!qualities.some((q) => q.label === value)) return;
+  quality = value;
+  localStorage.setItem("quality", quality);
+  setVideo(currentDeviceId);
+  stateChanged();
+}
+
 setVideo(localStorage.getItem("deviceId") || undefined, true);
 updateBackground();
 
@@ -1038,6 +1062,20 @@ function updateAspectRatio(): void {
   if (wanted !== height) resizeWindow(width, wanted);
 }
 updateAspectRatio();
+
+function setAspectRatio(value: string): void {
+  if (!aspectRatios.includes(value)) return;
+  aspectRatio = value;
+  localStorage.setItem("aspectRatio", aspectRatio);
+  updateAspectRatio();
+  stateChanged();
+}
+
+// Width in logical pixels; the height follows the aspect ratio
+function setWidth(logical: number): void {
+  const width = logical * pixelRatio();
+  resizeWindow(width, heightForWidth(width, width));
+}
 
 // Mouse wheel scales the window around its center, keeping its proportions.
 // A burst of wheel events works from its own state, since the window's
@@ -1099,7 +1137,7 @@ const onBoundsSettled = debounced(async () => {
   position = await win.outerPosition();
   saveBounds("bounds", bounds());
   updateAspectRatio();
-  rebuildMenu(); // refresh the Dimensions check mark
+  stateChanged(); // the settings window shows the size
 }, 200);
 
 await win.onMoved(({ payload }) => {

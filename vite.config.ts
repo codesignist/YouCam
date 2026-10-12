@@ -1,8 +1,8 @@
 import { defineConfig } from "vite";
 
-// Two pages: the camera window (index.html) and the screen light
-// (light.html). Tauri serves the build from dist/ and, in `pnpm dev`, uses
-// this dev server.
+// Three pages: the camera window (index.html), the screen light
+// (light.html) and the settings window (settings.html). Tauri serves the
+// build from dist/ and, in `pnpm dev`, uses this dev server.
 export default defineConfig({
   clearScreen: false,
   server: {
@@ -15,6 +15,7 @@ export default defineConfig({
       input: {
         main: "index.html",
         light: "light.html",
+        settings: "settings.html",
       },
     },
   },

@@ -114,18 +114,6 @@ body.hexagon #border {
   -webkit-mask-size: cover;
 }
 
-/* Only there to open the colour picker for Border > Custom...; it is moved
-   to where the menu was opened so the picker appears next to it */
-#custom-color {
-  position: fixed;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  border: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* What is wrong with the camera, or a short notice, in place of alert().
    The side padding keeps the text inside a circle or hexagon. */
 #status {

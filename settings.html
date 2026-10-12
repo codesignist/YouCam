@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouCam Settings</title>
+  </head>
+  <body>
+    <!-- The shape tiles' fill: a lens-like dark glass, the same in both themes -->
+    <svg width="0" height="0" aria-hidden="true" style="position: absolute">
+      <defs>
+        <radialGradient id="lens" cx="35%" cy="30%" r="80%">
+          <stop offset="0" stop-color="#5f7d70" />
+          <stop offset="0.55" stop-color="#2b3a34" />
+          <stop offset="1" stop-color="#16201c" />
+        </radialGradient>
+      </defs>
+    </svg>
+
+    <main>
+      <section aria-labelledby="camera-heading">
+        <h2 id="camera-heading">Camera</h2>
+        <div class="row">
+          <label for="camera">Source</label>
+          <select id="camera"></select>
+        </div>
+        <div class="row">
+          <span class="label" id="quality-label">Quality</span>
+          <div class="segmented" id="quality" role="radiogroup" aria-labelledby="quality-label"></div>
+        </div>
+        <div class="row toggle">
+          <label for="mirror">Mirror</label>
+          <input type="checkbox" role="switch" class="switch" id="mirror" />
+        </div>
+        <div class="row">
+          <span class="label">Rotate</span>
+          <div class="buttons">
+            <button type="button" id="rotate-left">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6.5a5 5 0 1 1 .9 5.2" /><path d="M3 2.5v4h4" /></svg>
+              Turn left
+            </button>
+            <button type="button" id="rotate-right">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M12.5 6.5a5 5 0 1 0-.9 5.2" /><path d="M13 2.5v4H9" /></svg>
+              Turn right
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="shape-heading">
+        <h2 id="shape-heading">Shape and size</h2>
+        <div class="shapes" id="shape" role="radiogroup" aria-labelledby="shape-heading"></div>
+        <div class="row">
+          <span class="label" id="size-label">Size</span>
+          <div class="segmented" id="size" role="radiogroup" aria-labelledby="size-label"></div>
+        </div>
+        <p class="hint indented" id="size-hint"></p>
+        <div class="row">
+          <span class="label" id="aspect-label">Aspect ratio</span>
+          <div class="segmented" id="aspect" role="radiogroup" aria-labelledby="aspect-label"></div>
+        </div>
+      </section>
+
+      <section aria-labelledby="picture-heading">
+        <div class="heading">
+          <h2 id="picture-heading">Picture</h2>
+          <button type="button" class="quiet" id="reset-picture">Reset</button>
+        </div>
+        <div class="row">
+          <span class="label" id="background-label">Background</span>
+          <div class="segmented" id="background" role="radiogroup" aria-labelledby="background-label"></div>
+        </div>
+        <div class="row">
+          <label for="brightness">Brightness</label>
+          <div class="slider">
+            <input type="range" id="brightness" />
+            <output for="brightness" id="brightness-value"></output>
+          </div>
+        </div>
+        <div class="row">
+          <label for="contrast">Contrast</label>
+          <div class="slider">
+            <input type="range" id="contrast" />
+            <output for="contrast" id="contrast-value"></output>
+          </div>
+        </div>
+        <div class="row toggle">
+          <label for="black-and-white">Black and white</label>
+          <input type="checkbox" role="switch" class="switch" id="black-and-white" />
+        </div>
+      </section>
+
+      <section aria-labelledby="border-heading">
+        <h2 id="border-heading">Border</h2>
+        <div class="swatches" id="border-colors" role="group" aria-labelledby="border-heading">
+          <label class="swatch custom" title="Any colour">
+            <input type="color" id="custom-color" aria-label="Pick any colour" />
+          </label>
+        </div>
+        <div class="row">
+          <label for="border-width">Width</label>
+          <div class="slider">
+            <input type="range" id="border-width" />
+            <output for="border-width" id="border-width-value"></output>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="window-heading">
+        <h2 id="window-heading">Window</h2>
+        <div class="row toggle">
+          <div>
+            <label for="always-on-top">Always on top</label>
+            <p class="hint">Keeps the camera above other windows.</p>
+          </div>
+          <input type="checkbox" role="switch" class="switch" id="always-on-top" />
+        </div>
+        <div class="row toggle">
+          <div>
+            <label for="screen-light">Screen light</label>
+            <p class="hint">A bright window that lights your face. Right-click it for its colour.</p>
+          </div>
+          <input type="checkbox" role="switch" class="switch" id="screen-light" />
+        </div>
+        <div class="row">
+          <label for="hide-shortcut">Hide and show</label>
+          <select id="hide-shortcut"></select>
+        </div>
+        <p class="hint indented" id="hide-shortcut-hint">Works even with a game in front.</p>
+        <p class="error indented" id="hide-shortcut-taken" hidden>Another app uses this shortcut. Pick another one.</p>
+      </section>
+
+      <section aria-labelledby="keys-heading">
+        <h2 id="keys-heading">Keys</h2>
+        <p class="hint">With the camera window in front:</p>
+        <dl class="keys">
+          <dt><kbd>M</kbd></dt><dd>Mirror</dd>
+          <dt><kbd>R</kbd> <kbd>Shift</kbd>+<kbd>R</kbd></dt><dd>Turn right, turn left</dd>
+          <dt><kbd>B</kbd></dt><dd>Next background</dd>
+          <dt><kbd>T</kbd></dt><dd>Always on top</dd>
+          <dt><kbd>L</kbd></dt><dd>Screen light</dd>
+          <dt><kbd>H</kbd></dt><dd>Hide</dd>
+          <dt><kbd>S</kbd></dt><dd>Settings</dd>
+          <dt><kbd>Q</kbd> <kbd>Esc</kbd></dt><dd>Exit</dd>
+          <dt>Mouse wheel</dt><dd>Resize</dd>
+          <dt>Right-click</dt><dd>Menu</dd>
+        </dl>
+      </section>
+    </main>
+    <script type="module" src="/src/settings.ts"></script>
+  </body>
+</html>

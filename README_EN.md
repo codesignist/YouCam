@@ -50,11 +50,14 @@ The Windows installer is written to `src-tauri/target/release/bundle/nsis/` and 
 | `T` | Toggle always on top |
 | `L` | Toggle screen light |
 | `H` | Hide the window |
-| `Ctrl+Shift+Y` | Hide / show the window from anywhere (even with a game in front, without taking its focus). Change it under "Hide/show shortcut" in the menu. |
+| `S` | Settings window |
+| `Ctrl+Shift+Y` | Hide / show the window from anywhere (even with a game in front, without taking its focus). Change it in the settings window. |
 | `Q` / `Esc` | Exit |
 | Mouse wheel | Resize the window |
-| Right click | Context menu |
+| Right click | Menu: camera, background, mirror, screen light, settings, hide, exit |
 | Tray icon click | Hide / show the window |
+
+Everything else is in the settings window (right-click > Settings... or `S`): camera quality and rotation, shape, size and aspect ratio, brightness, contrast, black and white, border colour and width, always on top and the hide/show shortcut. It opens next to the camera, and changes show on the camera as they are made.
 
 The screen light is a separate light window for lighting your face with a monitor (e.g. the second one in fullscreen). Right-click it to pick a colour temperature: White (6500K, brightest), Daylight (5600K), Neutral (4500K), Warm (3200K). For the best result, pick the one closest to the other lights in the room. There are also the accent colours streamers use most for a coloured side or back light: Red, Pink, Purple, Blue, Cyan. Apart from Cyan they give far less light than white, so use them as an accent rather than the main light. For any other colour, Custom... opens a colour picker. Double-click, `F` or `F11` toggles fullscreen, `Esc` leaves it and `L` closes it. Its colour, position, size and fullscreen state are remembered.
 
@@ -75,6 +78,7 @@ The screen light is a separate light window for lighting your face with a monito
 - [x] Hide / show with a global shortcut and the tray (the camera is off while hidden)
 - [x] Image adjustments: brightness, contrast, black and white
 - [x] Coloured border that follows the shape
+- [x] Settings window, a shorter right-click menu
 
 ## Contributing
 

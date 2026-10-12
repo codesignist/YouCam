@@ -50,11 +50,14 @@ Windows kurulum programı `src-tauri/target/release/bundle/nsis/` altına, uygul
 | `T` | Always on top aç/kapa |
 | `L` | Ekran ışığı aç/kapa |
 | `H` | Pencereyi gizle |
-| `Ctrl+Shift+Y` | Pencereyi her yerden gizle / göster (oyun öndeyken bile, odağı almadan). Menüdeki "Hide/show shortcut" ile değiştirilebilir. |
+| `S` | Ayarlar penceresi |
+| `Ctrl+Shift+Y` | Pencereyi her yerden gizle / göster (oyun öndeyken bile, odağı almadan). Ayarlar penceresinden değiştirilebilir. |
 | `Q` / `Esc` | Çıkış |
 | Fare tekerleği | Pencereyi büyüt / küçült |
-| Sağ tık | Bağlam menüsü |
+| Sağ tık | Menü: kamera, arka plan, ayna, ekran ışığı, ayarlar, gizle, çıkış |
 | Tray simgesine tık | Pencereyi gizle / göster |
+
+Diğer her şey ayarlar penceresinde (sağ tık > Settings... ya da `S`): kamera kalitesi ve döndürme, şekil, boyut ve en-boy oranı, parlaklık, kontrast, siyah-beyaz, çerçeve rengi ve kalınlığı, always on top ve gizle/göster kısayolu. Ayarlar penceresi kameranın yanında açılır, değişiklikler kamerada anında görünür.
 
 Ekran ışığı, yüzünüzü bir monitörle aydınlatmak için ayrı bir ışık penceresidir (ör. ikinci monitörde tam ekran). Işık penceresinde sağ tık ile renk sıcaklığı seçilir: White (6500K, en parlak), Daylight (5600K), Neutral (4500K), Warm (3200K). En iyi sonuç için odadaki diğer ışıkların rengine en yakın olanı seçin. Yayıncıların yan/arka ışık olarak en çok kullandığı vurgu renkleri de var: Red, Pink, Purple, Blue, Cyan. Bunlar (Cyan dışında) beyazdan çok daha az ışık verir, ana ışık olarak değil vurgu olarak kullanılır. Başka bir renk için Custom... renk seçiciyi açar. Çift tık, `F` ya da `F11` tam ekrana alır, `Esc` tam ekrandan çıkar, `L` kapatır. Rengi, konumu, boyutu ve tam ekran durumu hatırlanır.
 
@@ -75,6 +78,7 @@ Ekran ışığı, yüzünüzü bir monitörle aydınlatmak için ayrı bir ış�
 - [x] Global kısayol ve tray ile gizle / göster (gizliyken kamera kapalı)
 - [x] Görüntü ayarları: parlaklık, kontrast, siyah-beyaz
 - [x] Şekle uyan renkli çerçeve
+- [x] Ayarlar penceresi, sade sağ tık menüsü
 
 ## Katılım
 

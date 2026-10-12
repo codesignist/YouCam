@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "What the camera window and the screen light may do",
-  "windows": ["main", "light"],
+  "description": "What the camera window, the screen light and the settings window may do",
+  "windows": ["main", "light", "settings"],
   "permissions": [
     "core:default",
     "core:window:allow-show",
@@ -11,6 +11,7 @@
     "core:window:allow-destroy",
     "core:window:allow-set-focus",
     "core:window:allow-set-focusable",
+    "core:window:allow-unminimize",
     "core:window:allow-set-always-on-top",
     "core:window:allow-set-size",
     "core:window:allow-set-position",
