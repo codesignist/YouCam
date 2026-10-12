@@ -3,6 +3,7 @@
   --scaleX: 1;
   --radius: 50%;
   --filter: none;
+  --view-box: none;
 }
 
 html,
@@ -33,6 +34,13 @@ body:active {
   cursor: move;
 }
 
+/* Ctrl+drag moves the picture, not the window */
+body.panning,
+body.panning:active {
+  box-shadow: none;
+  cursor: grabbing;
+}
+
 /* The background effect canvas sits exactly on top of the video and gets
    the same shape, rotation and mirroring; so do the border and the
    backdrop of the status message, whose text stays upright */
@@ -51,9 +59,14 @@ canvas,
   transform: translate(-50%, -50%) scaleX(var(--scaleX)) rotate(var(--rotate));
 }
 
+/* main.ts sets the part of the camera image to show (zoomed and moved) as
+   the view box, which leaves the video's shape alone where scaling the
+   element would scale its shape too. Until then, the whole picture,
+   bottom-aligned. */
 video {
   object-fit: cover;
   object-position: bottom;
+  object-view-box: var(--view-box);
 }
 
 /* Brightness, contrast, black and white */

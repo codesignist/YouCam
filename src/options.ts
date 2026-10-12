@@ -32,6 +32,11 @@ export type Background = (typeof backgrounds)[number];
 // Brightness and contrast in percent; 100 leaves the picture as it is
 export const pictureRange = { min: 50, max: 200, step: 5 };
 
+// Digital zoom, as a factor of the whole picture. The window is usually much
+// smaller than the camera image, so zooming in mostly uses pixels that would
+// otherwise be scaled away.
+export const zoomRange = { min: 1, max: 3, step: 0.1 };
+
 // A coloured border along the shape, as streamers often put around their
 // camera. Green is YouCam's own.
 export const borderColors = [
@@ -65,6 +70,7 @@ export interface Settings {
   mirror: boolean;
   shape: string;
   aspectRatio: string;
+  zoom: number;
   background: Background;
   brightness: number;
   contrast: number;
@@ -85,13 +91,17 @@ export interface State extends Settings {
   height: number;
   customBorderColor: string; // the last colour picked for the border
   shortcutTaken: boolean; // another app holds hideShortcut
+  reframed: boolean; // zoomed or moved, so there is something to reset
+  // Zoomed in past the camera's pixels, while a higher quality would have more
+  zoomSoft: boolean;
 }
 
 // A setting changed in the settings window, or one of its buttons
 export type Change =
   | { [K in keyof Settings]: { key: K; value: Settings[K] } }[keyof Settings]
   | { key: "rotate"; value: 90 | -90 }
-  | { key: "size"; value: number };
+  | { key: "size"; value: number }
+  | { key: "resetFraming" };
 
 // The settings window asks for the state once it is listening
 export const SETTINGS_READY = "youcam:settings-ready";

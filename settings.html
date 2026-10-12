@@ -70,6 +70,21 @@
             </button>
           </div>
         </div>
+        <section aria-labelledby="framing-heading">
+          <div class="heading">
+            <h2 id="framing-heading" data-i18n="settings.framing">Framing</h2>
+            <button type="button" class="quiet" id="reset-framing" data-i18n="settings.reset">Reset</button>
+          </div>
+          <div class="row">
+            <label for="zoom" data-i18n="settings.zoom">Zoom</label>
+            <div class="slider">
+              <input type="range" id="zoom" />
+              <output for="zoom" id="zoom-value"></output>
+            </div>
+          </div>
+          <p class="hint indented" data-i18n="settings.zoomHint">On the camera, Ctrl+scroll zooms in where the mouse is and Ctrl+drag moves the picture.</p>
+          <p class="hint indented" id="zoom-soft" data-i18n="settings.zoomSoft" hidden>Pick 1080p above for a sharper zoom.</p>
+        </section>
       </div>
 
       <div class="panel" role="tabpanel" id="panel-shape" aria-labelledby="tab-shape" hidden>
@@ -178,6 +193,9 @@
           <dt><kbd>S</kbd></dt><dd data-i18n="keys.settings">Settings</dd>
           <dt><kbd>Q</kbd> <kbd>Esc</kbd></dt><dd data-i18n="keys.exit">Exit</dd>
           <dt data-i18n="keys.wheel">Mouse wheel</dt><dd data-i18n="keys.resize">Resize</dd>
+          <dt><kbd>Ctrl</kbd>+<span data-i18n="keys.wheelShort">Wheel</span></dt><dd data-i18n="keys.zoom">Zoom in, zoom out</dd>
+          <dt><kbd>Ctrl</kbd>+<span data-i18n="keys.drag">Drag</span></dt><dd data-i18n="keys.movePicture">Move the picture</dd>
+          <dt><kbd>0</kbd></dt><dd data-i18n="keys.resetZoom">Reset zoom</dd>
           <dt data-i18n="keys.rightClick">Right-click</dt><dd data-i18n="keys.menu">Menu</dd>
         </dl>
       </div>

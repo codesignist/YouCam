@@ -10,6 +10,7 @@ A small webcam window for YouTubers and streamers. It keeps your camera on scree
 
 - Circle, hexagon, rounded or square, with a coloured border if you like
 - Stays on top of other windows; drag it to move it, scroll on it to resize it
+- Digital zoom: `Ctrl`+scroll to zoom in on your face, `Ctrl`+drag to move the picture
 - Background blur or dark blur, done on your computer (nothing is uploaded)
 - Brightness, contrast, black and white, mirror and rotation
 - Screen light: a second window that lights your face with a monitor, in white or an accent colour
@@ -29,7 +30,7 @@ YouCam isn't code-signed, so Windows SmartScreen may warn you the first time you
 
 ## Usage
 
-Drag the camera to move it and scroll on it to resize it. Right-click it for the menu: camera, background, mirror, screen light, settings, hide and exit. Everything else is in the settings window (Settings... or `S`), which opens next to the camera so you can see each change as you make it.
+Drag the camera to move it and scroll on it to resize it. With `Ctrl` held, scrolling zooms the picture in where the mouse is and dragging moves the picture. Right-click it for the menu: camera, background, mirror, screen light, settings, hide and exit. Everything else is in the settings window (Settings... or `S`), which opens next to the camera so you can see each change as you make it.
 
 | Key | Action |
 |---|---|
@@ -40,6 +41,7 @@ Drag the camera to move it and scroll on it to resize it. Right-click it for the
 | `L` | Screen light |
 | `H` | Hide |
 | `S` | Settings |
+| `0` | Reset zoom |
 | `Q` / `Esc` | Exit |
 | `Ctrl+Shift+Y` | Hide / show from anywhere, without taking the focus from a game (can be changed in the settings) |
 

@@ -21,7 +21,7 @@ import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { register, unregisterAll } from "@tauri-apps/plugin-global-shortcut";
 import hexagonSvg from "../assets/hexagon.svg?raw";
 import trayIconUrl from "../assets/icon-tray.png?url";
-import type { BackgroundEffect, BackgroundMode } from "./background";
+import type { BackgroundEffect, BackgroundMode, Crop } from "./background";
 import {
   debounced,
   monitorAt,
@@ -42,6 +42,7 @@ import {
   pictureRange,
   qualities,
   shapes,
+  zoomRange,
   type Background,
   type Change,
   type State,
@@ -92,6 +93,22 @@ let blackAndWhite = localStorage.getItem("blackAndWhite") === "true";
 let borderColor = savedColor("borderColor") ?? "off";
 let customBorderColor = savedColor("borderCustomColor") ?? "#ffffff";
 let borderWidth = savedNumber("borderWidth", borderWidthRange, borderWidthRange.initial);
+
+// Digital zoom, and the point of the camera image to keep in the middle of
+// the window as far as the image's edges allow, in fractions of its width
+// and height
+interface Framing {
+  zoom: number;
+  x: number;
+  y: number;
+}
+// What it starts as: the whole picture, bottom-aligned
+const WHOLE_PICTURE: Framing = { zoom: 1, x: 0.5, y: 1 };
+let framing: Framing = {
+  zoom: savedNumber("zoom", zoomRange, WHOLE_PICTURE.zoom),
+  x: savedNumber("framingX", { min: 0, max: 1 }, WHOLE_PICTURE.x),
+  y: savedNumber("framingY", { min: 0, max: 1 }, WHOLE_PICTURE.y),
+};
 
 function savedNumber(
   key: string,
@@ -326,6 +343,7 @@ function updateVars(): void {
   docStyle.setProperty("--radius", radius);
   document.body.classList.toggle("hexagon", shape === "Hexagon");
   document.body.classList.toggle("sideways", deg % 180 !== 0);
+  updateFraming(); // turning sideways swaps the video's box
 }
 updateVars();
 
@@ -345,6 +363,118 @@ function setShape(value: string): void {
   localStorage.setItem("shape", shape);
   updateVars();
   stateChanged();
+}
+
+// ---- Framing: digital zoom and moving the picture ---------------------------
+
+// The part of the camera image shown in a box of the given size (only its
+// proportions count): what object-fit: cover would show, made smaller by the
+// zoom, with its middle as close to the framing point as the edges allow
+function cropFor(width: number, height: number, f = framing): Crop {
+  const { videoWidth, videoHeight } = video;
+  const scale = Math.min(videoWidth / width, videoHeight / height) / f.zoom;
+  const sw = width * scale;
+  const sh = height * scale;
+  const start = (middle: number, size: number, whole: number) =>
+    Math.min(Math.max(middle * whole - size / 2, 0), whole - size);
+  return { sx: start(f.x, sw, videoWidth), sy: start(f.y, sh, videoHeight), sw, sh };
+}
+
+// What the video shows now; undefined until the camera has a picture
+function shownCrop(): Crop | undefined {
+  const { videoWidth, clientWidth, clientHeight } = video;
+  return videoWidth && clientWidth && clientHeight
+    ? cropFor(clientWidth, clientHeight)
+    : undefined;
+}
+
+// The background effect draws the same crop itself (see updateBackground)
+function updateFraming(): void {
+  const crop = shownCrop();
+  let viewBox = "none";
+  if (crop) {
+    const { videoWidth: w, videoHeight: h } = video;
+    const { sx, sy, sw, sh } = crop;
+    const percent = (part: number, whole: number) =>
+      `${((part / whole) * 100).toFixed(4)}%`;
+    viewBox = `inset(${percent(sy, h)} ${percent(w - sx - sw, w)} ${percent(h - sy - sh, h)} ${percent(sx, w)})`;
+  }
+  document.documentElement.style.setProperty("--view-box", viewBox);
+}
+// The camera's picture changes size with the camera and the quality, the
+// box with the window
+video.addEventListener("resize", () => {
+  updateFraming();
+  stateChanged(); // for zoomSoft()
+});
+window.addEventListener("resize", updateFraming);
+
+function setFraming(value: Framing): void {
+  framing = value;
+  localStorage.setItem("zoom", String(framing.zoom));
+  localStorage.setItem("framingX", String(framing.x));
+  localStorage.setItem("framingY", String(framing.y));
+  updateFraming();
+  stateChanged();
+}
+
+function resetFraming(): void {
+  setFraming(WHOLE_PICTURE);
+}
+
+// A move on the screen as a move across the picture, which may be mirrored
+// and turned
+function onPicture(x: number, y: number): [number, number] {
+  const mx = isMirror ? -x : x;
+  const cos = Math.round(Math.cos((deg * Math.PI) / 180));
+  const sin = Math.round(Math.sin((deg * Math.PI) / 180));
+  return [cos * mx + sin * y, cos * y - sin * mx];
+}
+
+// Zooms to `zoom`, keeping the point (atX, atY) CSS pixels from the middle
+// of the window in place (the mouse, or the middle itself), and moves the
+// picture by (byX, byY). What is saved is where the edges of the image
+// stopped it, so moving back from an edge starts at once.
+function reframe(zoom: number, atX = 0, atY = 0, byX = 0, byY = 0): void {
+  if (!Number.isFinite(zoom)) return;
+  zoom = Math.min(Math.max(zoom, zoomRange.min), zoomRange.max);
+  const shown = shownCrop();
+  if (!shown) {
+    setFraming({ ...framing, zoom });
+    return;
+  }
+  const { videoWidth, videoHeight, clientWidth, clientHeight } = video;
+  const perPixel = shown.sw / clientWidth; // camera pixels per CSS pixel
+  const [ax, ay] = onPicture(atX, atY);
+  const [bx, by] = onPicture(byX, byY);
+  // The point at (ax, ay) is that far from the middle at the new zoom too
+  const keep = 1 - framing.zoom / zoom;
+  const crop = cropFor(clientWidth, clientHeight, {
+    zoom,
+    x: (shown.sx + shown.sw / 2 + (ax * keep - bx) * perPixel) / videoWidth,
+    y: (shown.sy + shown.sh / 2 + (ay * keep - by) * perPixel) / videoHeight,
+  });
+  // Already at an edge, or at the end of the zoom range
+  const moved =
+    Math.abs(crop.sx - shown.sx) > 0.01 || Math.abs(crop.sy - shown.sy) > 0.01;
+  if (zoom === framing.zoom && !moved) return;
+  setFraming({
+    zoom,
+    x: (crop.sx + crop.sw / 2) / videoWidth,
+    y: (crop.sy + crop.sh / 2) / videoHeight,
+  });
+}
+
+// Zoomed in so far that the window has more pixels across than the part of
+// the camera image it shows, while a higher quality would give it more
+function zoomSoft(): boolean {
+  const crop = shownCrop();
+  return (
+    crop !== undefined &&
+    framing.zoom > 1 &&
+    quality !== qualities[qualities.length - 1].label &&
+    crop.sw < video.clientWidth * pixelRatio()
+  );
 }
 
 // ---- Image and border ----------------------------------------------------------
@@ -533,6 +663,7 @@ function currentState(): State {
     mirror: isMirror,
     shape,
     aspectRatio,
+    zoom: framing.zoom,
     background,
     brightness,
     contrast,
@@ -551,6 +682,11 @@ function currentState(): State {
     height: Math.round(window.innerHeight),
     customBorderColor,
     shortcutTaken,
+    reframed:
+      framing.zoom !== WHOLE_PICTURE.zoom ||
+      framing.x !== WHOLE_PICTURE.x ||
+      framing.y !== WHOLE_PICTURE.y,
+    zoomSoft: zoomSoft(),
   };
 }
 
@@ -583,6 +719,12 @@ function applyChange(change: Change): void {
       break;
     case "aspectRatio":
       setAspectRatio(change.value);
+      break;
+    case "zoom":
+      reframe(change.value);
+      break;
+    case "resetFraming":
+      resetFraming();
       break;
     case "background":
       setBackground(change.value);
@@ -788,7 +930,7 @@ function updateBackground(): void {
   if (on && !backgroundEffect) {
     backgroundEffect = import("./background")
       .then(({ startBackground }) =>
-        startBackground(video, backgroundCanvas, background as BackgroundMode)
+        startBackground(video, backgroundCanvas, background as BackgroundMode, cropFor)
       )
       .catch((err) => {
         console.error("background:", err);
@@ -838,6 +980,9 @@ window.addEventListener("keydown", (ev) => {
       break;
     case "s":
       void openSettings();
+      break;
+    case "0":
+      resetFraming();
       break;
     case "q":
     case "escape":
@@ -1059,12 +1204,36 @@ updateBackground();
 // ---- Window size and position --------------------------------------------------
 
 // Drag the frameless window with the left button; the OS does the moving.
-// The status message's buttons are there to be clicked instead.
+// With Ctrl held, the drag moves the picture instead. The status message's
+// buttons are there to be clicked instead.
+let panFrom: { x: number; y: number } | null = null;
 document.body.addEventListener("mousedown", (ev) => {
-  if (ev.button === 0 && !(ev.target as Element).closest("button")) {
+  if (ev.button !== 0 || (ev.target as Element).closest("button")) return;
+  if (ev.ctrlKey) {
+    ev.preventDefault();
+    panFrom = { x: ev.clientX, y: ev.clientY };
+    document.body.classList.add("panning");
+  } else {
     void win.startDragging();
   }
 });
+
+// The mouse keeps being followed outside the window while the button is held
+window.addEventListener("mousemove", (ev) => {
+  if (!panFrom) return;
+  if (!(ev.buttons & 1)) {
+    endPan(); // let go where the mouseup wasn't seen
+    return;
+  }
+  reframe(framing.zoom, 0, 0, ev.clientX - panFrom.x, ev.clientY - panFrom.y);
+  panFrom = { x: ev.clientX, y: ev.clientY };
+});
+window.addEventListener("mouseup", () => endPan());
+
+function endPan(): void {
+  panFrom = null;
+  document.body.classList.remove("panning");
+}
 
 function resizeWindow(width: number, height: number): void {
   void win.setSize(new PhysicalSize(Math.round(width), Math.round(height)));
@@ -1143,11 +1312,21 @@ function zoomWindow(scale: number): void {
   );
 }
 
+// With Ctrl, the wheel zooms the picture where the mouse is instead
 document.body.addEventListener(
   "wheel",
   (ev) => {
     ev.preventDefault(); // also stops Ctrl+wheel from zooming the page
-    zoomWindow(Math.exp(-ev.deltaY / 1000)); // ~10% per wheel notch
+    const scale = Math.exp(-ev.deltaY / 1000); // ~10% per wheel notch
+    if (ev.ctrlKey) {
+      reframe(
+        framing.zoom * scale,
+        ev.clientX - window.innerWidth / 2,
+        ev.clientY - window.innerHeight / 2
+      );
+    } else {
+      zoomWindow(scale);
+    }
   },
   { passive: false }
 );

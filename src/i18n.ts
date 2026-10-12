@@ -62,6 +62,11 @@ const en = {
   "settings.rotate": "Rotate",
   "settings.turnLeft": "Turn left",
   "settings.turnRight": "Turn right",
+  "settings.framing": "Framing",
+  "settings.zoom": "Zoom",
+  "settings.zoomHint":
+    "On the camera, Ctrl+scroll zooms in where the mouse is and Ctrl+drag moves the picture.",
+  "settings.zoomSoft": "Pick 1080p above for a sharper zoom.",
 
   "settings.shapeAndSize": "Shape and size",
   "shape.Square": "Square",
@@ -119,6 +124,11 @@ const en = {
   "keys.exit": "Exit",
   "keys.wheel": "Mouse wheel",
   "keys.resize": "Resize",
+  "keys.wheelShort": "Wheel",
+  "keys.zoom": "Zoom in, zoom out",
+  "keys.drag": "Drag",
+  "keys.movePicture": "Move the picture",
+  "keys.resetZoom": "Reset zoom",
   "keys.rightClick": "Right-click",
   "keys.menu": "Menu",
 
@@ -192,6 +202,11 @@ const tr: Record<MessageKey, string> = {
   "settings.rotate": "Döndür",
   "settings.turnLeft": "Sola çevir",
   "settings.turnRight": "Sağa çevir",
+  "settings.framing": "Kadraj",
+  "settings.zoom": "Yakınlaştırma",
+  "settings.zoomHint":
+    "Kamerada Ctrl+tekerlek farenin olduğu yere yakınlaştırır, Ctrl+sürükleme görüntüyü kaydırır.",
+  "settings.zoomSoft": "Daha net bir yakınlaştırma için yukarıdan 1080p'yi seçin.",
 
   "settings.shapeAndSize": "Şekil ve boyut",
   "shape.Square": "Kare",
@@ -249,6 +264,11 @@ const tr: Record<MessageKey, string> = {
   "keys.exit": "Çıkış",
   "keys.wheel": "Fare tekerleği",
   "keys.resize": "Boyutlandır",
+  "keys.wheelShort": "Tekerlek",
+  "keys.zoom": "Yakınlaştır, uzaklaştır",
+  "keys.drag": "Sürükle",
+  "keys.movePicture": "Görüntüyü kaydır",
+  "keys.resetZoom": "Yakınlaştırmayı sıfırla",
   "keys.rightClick": "Sağ tık",
   "keys.menu": "Menü",
 

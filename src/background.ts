@@ -15,6 +15,14 @@ export interface BackgroundEffect {
   stop(): void;
 }
 
+// A part of the camera image, in its pixels
+export interface Crop {
+  sx: number;
+  sy: number;
+  sw: number;
+  sh: number;
+}
+
 // The model works on 256px input anyway, so handing it a downscaled frame is
 // much cheaper than letting it resize full camera frames (and masks) itself
 const MODEL_SIZE = 256;
@@ -56,11 +64,14 @@ function context2d(
 }
 
 // Starts drawing the camera image with the given background onto canvas.
-// Switching modes keeps the model running, so it is instant.
+// Switching modes keeps the model running, so it is instant. cropFor gives
+// the part of the image the plain video shows in a box of the given size
+// (zoomed and moved), so the effect shows the same.
 export async function startBackground(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
-  initialMode: BackgroundMode
+  initialMode: BackgroundMode,
+  cropFor: (width: number, height: number) => Crop
 ): Promise<BackgroundEffect> {
   const segmenter = await createSegmenter();
   let mode = initialMode;
@@ -94,12 +105,7 @@ export async function startBackground(
       maskImage = maskCtx.createImageData(smallW, smallH);
     }
 
-    // Same crop as the plain video's object-fit: cover; object-position: bottom
-    const crop = Math.min(video.videoWidth / width, video.videoHeight / height);
-    const sw = width * crop;
-    const sh = height * crop;
-    const sx = (video.videoWidth - sw) / 2;
-    const sy = video.videoHeight - sh;
+    const { sx, sy, sw, sh } = cropFor(width, height);
     smallCtx.drawImage(video, sx, sy, sw, sh, 0, 0, smallW, smallH);
 
     const result = segmenter.segmentForVideo(small, performance.now());

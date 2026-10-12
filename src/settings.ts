@@ -19,6 +19,7 @@ import {
   qualities,
   shapes,
   sizes,
+  zoomRange,
   type Change,
   type State,
 } from "./options";
@@ -177,6 +178,15 @@ const setQuality = segmented(
 const setMirror = toggle("mirror", (value) => send({ key: "mirror", value }));
 byId("rotate-left").addEventListener("click", () => send({ key: "rotate", value: -90 }));
 byId("rotate-right").addEventListener("click", () => send({ key: "rotate", value: 90 }));
+
+const setZoom = slider(
+  "zoom",
+  zoomRange,
+  (value) => `${Math.round(value * 100)}%`,
+  (value) => send({ key: "zoom", value })
+);
+const resetFraming = byId<HTMLButtonElement>("reset-framing");
+resetFraming.addEventListener("click", () => send({ key: "resetFraming" }));
 
 // ---- Shape and size ---------------------------------------------------------------
 
@@ -375,6 +385,9 @@ function render(state: State): void {
   showCameras(state);
   setQuality(state.quality);
   setMirror(state.mirror);
+  setZoom(state.zoom);
+  resetFraming.disabled = !state.reframed;
+  byId("zoom-soft").hidden = !state.zoomSoft;
 
   setShape(state.shape);
   setSize(String(state.width));
