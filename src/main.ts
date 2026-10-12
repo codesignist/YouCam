@@ -46,6 +46,14 @@ import {
   type Change,
   type State,
 } from "./options";
+import {
+  languages,
+  option,
+  savedLanguage,
+  setLanguage,
+  t,
+  type Language,
+} from "./i18n";
 import "./app.css";
 
 const win = getCurrentWindow();
@@ -74,6 +82,7 @@ if (!hideShortcuts.some((s) => s.label === hideShortcut)) {
   hideShortcut = hideShortcuts[0].label;
 }
 let shortcutTaken = false; // by another app
+let language = savedLanguage(); // already applied by i18n.ts
 let hidden = false;
 let brightness = savedNumber("brightness", pictureRange, 100);
 let contrast = savedNumber("contrast", pictureRange, 100);
@@ -151,34 +160,42 @@ interface MenuEntry {
 function buildMenuEntries(): MenuEntry[] {
   return [
     {
-      label: "Cam source",
+      label: t("menu.camera"),
       submenu: videoDevices.map((device, i) => ({
-        label: device.label || `Camera ${i + 1}`,
+        label: cameraName(device, i),
         checked: device.deviceId === currentDeviceId,
         action: () => setVideo(device.deviceId),
       })),
     },
     {
-      label: "Background (B)",
+      label: t("menu.background"),
       submenu: backgrounds.map((bg) => ({
-        label: bg,
+        label: option("background", bg),
         checked: background === bg,
         action: () => setBackground(bg),
       })),
     },
-    { label: "Mirror (M)", checked: isMirror, action: toggleMirror },
+    { label: t("menu.mirror"), checked: isMirror, action: toggleMirror },
     {
-      label: "Screen light (L)",
+      label: t("menu.screenLight"),
       checked: light !== null,
       action: toggleScreenLight,
     },
     { separator: true },
-    { label: "Settings... (S)", action: () => void openSettings() },
+    { label: t("menu.settings"), action: () => void openSettings() },
     // Only the tray menu is there while the window is hidden
-    { label: hidden ? "Show" : "Hide (H)", action: () => void setHidden(!hidden) },
+    {
+      label: hidden ? t("menu.show") : t("menu.hide"),
+      action: () => void setHidden(!hidden),
+    },
     { separator: true },
-    { label: "Exit (Q)", action: () => win.close() },
+    { label: t("menu.exit"), action: () => win.close() },
   ];
+}
+
+// Device labels may be empty until the camera has been allowed
+function cameraName(device: MediaDeviceInfo, i: number): string {
+  return device.label || t("camera.unnamed", { n: i + 1 });
 }
 
 type MenuResource = { close(): Promise<void> };
@@ -435,7 +452,7 @@ function toggleScreenLight(): void {
   lightOpening = true;
   const w = new WebviewWindow("light", {
     url: "light.html",
-    title: "YouCam Light",
+    title: t("title.light"),
     width: 800,
     height: 600,
     decorations: true,
@@ -476,7 +493,7 @@ async function openSettings(): Promise<void> {
   }
   const w = new WebviewWindow("settings", {
     url: "settings.html",
-    title: "YouCam Settings",
+    title: t("title.settings"),
     width: SETTINGS_WIDTH,
     height: SETTINGS_HEIGHT,
     minWidth: 360,
@@ -525,9 +542,10 @@ function currentState(): State {
     alwaysOnTop,
     screenLight: light !== null,
     hideShortcut,
+    language,
     cameras: videoDevices.map((device, i) => ({
       deviceId: device.deviceId,
-      label: device.label || `Camera ${i + 1}`,
+      label: cameraName(device, i),
     })),
     width: Math.round(window.innerWidth),
     height: Math.round(window.innerHeight),
@@ -589,6 +607,9 @@ function applyChange(change: Change): void {
     case "hideShortcut":
       setHideShortcut(change.value);
       break;
+    case "language":
+      changeLanguage(change.value);
+      break;
     case "rotate":
       rotate(change.value);
       break;
@@ -596,6 +617,17 @@ function applyChange(change: Change): void {
       setWidth(change.value);
       break;
   }
+}
+
+// Every window follows the language: this one's menu and messages here, the
+// settings window and the screen light when they get the new state
+function changeLanguage(value: Language): void {
+  if (!languages.includes(value)) return;
+  language = value;
+  localStorage.setItem("language", language);
+  setLanguage(language);
+  if (cameraProblem) setCameraMessage(messageFor(cameraProblem));
+  stateChanged();
 }
 
 await listen(SETTINGS_READY, () => void emit(STATE, currentState()));
@@ -713,8 +745,8 @@ function applyHideShortcut(): void {
         console.error("shortcut:", err);
         shortcutTaken = true;
         showNotice({
-          title: `${label} is taken`,
-          hint: "Another app uses it; pick another in Settings.",
+          title: t("message.shortcutTaken", { shortcut: label }),
+          hint: t("message.shortcutTakenHint"),
         });
       }
     }
@@ -766,8 +798,8 @@ function updateBackground(): void {
         document.body.classList.remove("background-effect");
         stateChanged();
         showNotice({
-          title: "Background effect failed",
-          hint: "It is off for now; press B to try again.",
+          title: t("message.backgroundFailed"),
+          hint: t("message.backgroundFailedHint"),
         });
         return undefined;
       });
@@ -884,6 +916,7 @@ function setVideo(id?: string, orDefault = false): void {
       });
       if (id) localStorage.setItem("deviceId", id);
       document.body.classList.remove("camera-off");
+      cameraProblem = undefined;
       setCameraMessage(null);
       // Device labels may only be exposed once a stream is active
       refreshDevices();
@@ -901,6 +934,8 @@ function setVideo(id?: string, orDefault = false): void {
 }
 
 type CameraProblem = "denied" | "missing" | "busy" | "failed";
+// While the camera is down, so its message can change language
+let cameraProblem: CameraProblem | undefined;
 
 function problemOf(errorName: string): CameraProblem {
   switch (errorName) {
@@ -918,32 +953,23 @@ function problemOf(errorName: string): CameraProblem {
 }
 
 function messageFor(problem: CameraProblem): Message {
-  const tryAgain = { label: "Try again", action: () => setVideo(currentDeviceId) };
+  const tryAgain = { label: t("message.tryAgain"), action: () => setVideo(currentDeviceId) };
   switch (problem) {
     case "denied":
       return {
-        title: "No camera access",
-        hint: "Allow it under Windows Settings > Privacy & security > Camera.",
+        title: t("message.denied"),
+        hint: t("message.deniedHint"),
         actions: [tryAgain],
       };
     case "missing":
       return currentDeviceId
-        ? {
-            title: "Camera disconnected",
-            hint: "Plug it back in and YouCam will reconnect, or right-click to pick another.",
-          }
-        : {
-            title: "No camera found",
-            hint: "Plug one in and YouCam will connect to it.",
-          };
+        ? { title: t("message.disconnected"), hint: t("message.disconnectedHint") }
+        : { title: t("message.noCamera"), hint: t("message.noCameraHint") };
     case "busy": {
       const picked = videoDevices.find((d) => d.deviceId === currentDeviceId);
       if (picked && /OBS Virtual Camera/i.test(picked.label)) {
         // It can't be opened until it is started in OBS
-        return {
-          title: "OBS Virtual Camera is off",
-          hint: "Start it in OBS (Start Virtual Camera) and YouCam will connect.",
-        };
+        return { title: t("message.obsOff"), hint: t("message.obsOffHint") };
       }
       // OBS usually keeps the camera it records to itself, but can pass the
       // picture on through its Virtual Camera
@@ -952,21 +978,16 @@ function messageFor(problem: CameraProblem): Message {
       );
       return obs
         ? {
-            title: "Camera is in use",
-            hint: "If OBS has it, start OBS's Virtual Camera and use that.",
-            actions: [
-              { label: "Use OBS Virtual Camera", action: () => setVideo(obs.deviceId) },
-            ],
+            title: t("message.busy"),
+            hint: t("message.busyObsHint"),
+            actions: [{ label: t("message.useObs"), action: () => setVideo(obs.deviceId) }],
           }
-        : {
-            title: "Camera is in use",
-            hint: "YouCam will connect once the other app lets go of it.",
-          };
+        : { title: t("message.busy"), hint: t("message.busyHint") };
     }
     case "failed":
       return {
-        title: "Camera didn't start",
-        hint: "YouCam will keep trying.",
+        title: t("message.failed"),
+        hint: t("message.failedHint"),
         actions: [tryAgain],
       };
   }
@@ -979,6 +1000,7 @@ function cameraDown(problem: CameraProblem): void {
   currentStream = undefined;
   video.srcObject = null;
   document.body.classList.add("camera-off");
+  cameraProblem = problem;
   setCameraMessage(messageFor(problem));
   if (problem !== "denied") waitForCamera();
 }

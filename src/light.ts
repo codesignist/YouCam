@@ -12,6 +12,7 @@ import {
   MenuItem,
   PredefinedMenuItem,
 } from "@tauri-apps/api/menu";
+import { listen } from "@tauri-apps/api/event";
 import {
   centerOn,
   debounced,
@@ -21,15 +22,17 @@ import {
   saveBounds,
   type Bounds,
 } from "./common";
+import { option, savedLanguage, setLanguage, t } from "./i18n";
+import { STATE, type State } from "./options";
 
 const win = getCurrentWindow();
 // Tracked here rather than asked from the window, which lags behind while
 // it is still animating in or out of fullscreen
 let fullscreen = false;
 
+// Named in the menu by id (light.<id> in i18n.ts)
 interface LightColor {
   id: string;
-  label: string;
   color: string;
   accent?: boolean;
 }
@@ -39,24 +42,23 @@ interface LightColor {
 // the brightest; the others are blackbody colours converted to sRGB with
 // Tanner Helland's approximation.
 const lightColors: LightColor[] = [
-  { id: "6500", label: "White (6500K)", color: "#ffffff" },
-  { id: "5600", label: "Daylight (5600K)", color: "#ffefe1" },
-  { id: "4500", label: "Neutral (4500K)", color: "#ffdabb" },
-  { id: "3200", label: "Warm (3200K)", color: "#ffb87b" },
+  { id: "6500", color: "#ffffff" }, // White
+  { id: "5600", color: "#ffefe1" }, // Daylight
+  { id: "4500", color: "#ffdabb" }, // Neutral
+  { id: "3200", color: "#ffb87b" }, // Warm
   // The accent colours streamers use most for a coloured side or back light,
   // in colour wheel order. Fully saturated, so apart from cyan they give far
   // less light than white (red and pink ~1/5 of it, purple and blue ~1/10)
-  { id: "red", label: "Red", color: "#ff0000", accent: true },
-  { id: "pink", label: "Pink", color: "#ff0080", accent: true },
-  { id: "purple", label: "Purple", color: "#8000ff", accent: true },
-  { id: "blue", label: "Blue", color: "#0000ff", accent: true },
-  { id: "cyan", label: "Cyan", color: "#00ffff", accent: true },
+  { id: "red", color: "#ff0000", accent: true },
+  { id: "pink", color: "#ff0080", accent: true },
+  { id: "purple", color: "#8000ff", accent: true },
+  { id: "blue", color: "#0000ff", accent: true },
+  { id: "cyan", color: "#00ffff", accent: true },
 ];
 // Any other colour, picked with the colour picker
 const savedCustom = localStorage.getItem("lightCustomColor") ?? "";
 const customColor: LightColor = {
   id: "custom",
-  label: "Custom...",
   color: /^#[0-9a-f]{6}$/i.test(savedCustom) ? savedCustom : "#ffffff",
   accent: true,
 };
@@ -77,7 +79,7 @@ for (const [i, c] of lightColors.entries()) {
     menuItems.push(await PredefinedMenuItem.new({ item: "Separator" }));
   }
   const item = await CheckMenuItem.new({
-    text: c.label,
+    text: option("light", c.id),
     checked: c === lightColor,
     action: () => (c === customColor ? pickCustomColor() : setLightColor(c)),
   });
@@ -86,15 +88,29 @@ for (const [i, c] of lightColors.entries()) {
 }
 menuItems.push(await PredefinedMenuItem.new({ item: "Separator" }));
 const fullscreenItem = await CheckMenuItem.new({
-  text: "Fullscreen (F)",
+  text: t("light.fullscreen"),
   checked: false,
   action: () => void setFullscreen(!fullscreen),
 });
-menuItems.push(
-  fullscreenItem,
-  await MenuItem.new({ text: "Close (L)", action: () => void win.close() })
-);
+const closeItem = await MenuItem.new({
+  text: t("light.close"),
+  action: () => void win.close(),
+});
+menuItems.push(fullscreenItem, closeItem);
 const menu = await Menu.new({ items: menuItems });
+
+// Follows the language picked in the settings window, which the camera
+// window sends with every change
+let language = savedLanguage();
+await listen<State>(STATE, ({ payload }) => {
+  if (payload.language === language) return;
+  language = payload.language;
+  setLanguage(language);
+  for (const [c, item] of colorItems) void item.setText(option("light", c.id));
+  void fullscreenItem.setText(t("light.fullscreen"));
+  void closeItem.setText(t("light.close"));
+  void win.setTitle(t("title.light"));
+});
 
 // Clicking a check item toggles it by itself; this puts every mark back
 // where the current state says

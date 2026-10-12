@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>YouCam Settings</title>
   </head>
+  <!-- Every text carries its key in i18n.ts: data-i18n for the text itself,
+       data-i18n-title for a title and accessible name, data-i18n-aria for an
+       accessible name alone. settings.ts fills them in. -->
   <body>
     <!-- The shape tiles' fill: a lens-like dark glass, the same in both themes -->
     <svg width="0" height="0" aria-hidden="true" style="position: absolute">
@@ -17,53 +20,53 @@
       </defs>
     </svg>
 
-    <nav class="tabs" role="tablist" aria-label="Settings">
+    <nav class="tabs" role="tablist" data-i18n-aria="tabs.label">
       <button type="button" role="tab" id="tab-camera" aria-controls="panel-camera">
         <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="5.5" width="10.5" height="9" rx="2" /><path d="M13 9l4.5-2.5v7L13 11" /></svg>
-        Camera
+        <span data-i18n="tab.camera">Camera</span>
       </button>
       <button type="button" role="tab" id="tab-shape" aria-controls="panel-shape">
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6.2 3.5h7.6l3.7 6.5-3.7 6.5H6.2L2.5 10z" /></svg>
-        Shape
+        <span data-i18n="tab.shape">Shape</span>
       </button>
       <button type="button" role="tab" id="tab-picture" aria-controls="panel-picture">
         <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" /><path d="M10 3a7 7 0 0 1 0 14z" class="filled" /></svg>
-        Picture
+        <span data-i18n="tab.picture">Picture</span>
       </button>
-      <button type="button" role="tab" id="tab-window" aria-controls="panel-window">
-        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2" /><path d="M2.5 7.5h15" /></svg>
-        Window
+      <button type="button" role="tab" id="tab-general" aria-controls="panel-general">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 6h8.5M15 6h2.5M2.5 14h2.5M9 14h8.5" /><circle cx="13" cy="6" r="2" /><circle cx="7" cy="14" r="2" /></svg>
+        <span data-i18n="tab.general">General</span>
       </button>
       <button type="button" role="tab" id="tab-keys" aria-controls="panel-keys">
         <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="5" width="16" height="10.5" rx="2" /><path d="M5.5 8.5h1M9.5 8.5h1M13.5 8.5h1M6.5 12h7" /></svg>
-        Keys
+        <span data-i18n="tab.keys">Keys</span>
       </button>
     </nav>
 
     <main>
       <div class="panel" role="tabpanel" id="panel-camera" aria-labelledby="tab-camera" hidden>
         <div class="row">
-          <label for="camera">Source</label>
+          <label for="camera" data-i18n="settings.source">Source</label>
           <select id="camera"></select>
         </div>
         <div class="row">
-          <span class="label" id="quality-label">Quality</span>
+          <span class="label" id="quality-label" data-i18n="settings.quality">Quality</span>
           <div class="segmented" id="quality" role="radiogroup" aria-labelledby="quality-label"></div>
         </div>
         <div class="row toggle">
-          <label for="mirror">Mirror</label>
+          <label for="mirror" data-i18n="settings.mirror">Mirror</label>
           <input type="checkbox" role="switch" class="switch" id="mirror" />
         </div>
         <div class="row">
-          <span class="label">Rotate</span>
+          <span class="label" data-i18n="settings.rotate">Rotate</span>
           <div class="buttons">
             <button type="button" id="rotate-left">
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6.5a5 5 0 1 1 .9 5.2" /><path d="M3 2.5v4h4" /></svg>
-              Turn left
+              <span data-i18n="settings.turnLeft">Turn left</span>
             </button>
             <button type="button" id="rotate-right">
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M12.5 6.5a5 5 0 1 0-.9 5.2" /><path d="M13 2.5v4H9" /></svg>
-              Turn right
+              <span data-i18n="settings.turnRight">Turn right</span>
             </button>
           </div>
         </div>
@@ -71,27 +74,27 @@
 
       <div class="panel" role="tabpanel" id="panel-shape" aria-labelledby="tab-shape" hidden>
         <section aria-labelledby="shape-heading">
-          <h2 id="shape-heading">Shape and size</h2>
+          <h2 id="shape-heading" data-i18n="settings.shapeAndSize">Shape and size</h2>
           <div class="shapes" id="shape" role="radiogroup" aria-labelledby="shape-heading"></div>
           <div class="row">
-            <span class="label" id="size-label">Size</span>
+            <span class="label" id="size-label" data-i18n="settings.size">Size</span>
             <div class="segmented" id="size" role="radiogroup" aria-labelledby="size-label"></div>
           </div>
           <p class="hint indented" id="size-hint"></p>
           <div class="row">
-            <span class="label" id="aspect-label">Aspect ratio</span>
+            <span class="label" id="aspect-label" data-i18n="settings.aspectRatio">Aspect ratio</span>
             <div class="segmented" id="aspect" role="radiogroup" aria-labelledby="aspect-label"></div>
           </div>
         </section>
         <section aria-labelledby="border-heading">
-          <h2 id="border-heading">Border</h2>
+          <h2 id="border-heading" data-i18n="settings.border">Border</h2>
           <div class="swatches" id="border-colors" role="group" aria-labelledby="border-heading">
-            <label class="swatch custom" title="Any colour">
-              <input type="color" id="custom-color" aria-label="Pick any colour" />
+            <label class="swatch custom" data-i18n-title="settings.anyColour">
+              <input type="color" id="custom-color" data-i18n-aria="settings.pickColour" />
             </label>
           </div>
           <div class="row">
-            <label for="border-width">Width</label>
+            <label for="border-width" data-i18n="settings.width">Width</label>
             <div class="slider">
               <input type="range" id="border-width" />
               <output for="border-width" id="border-width-value"></output>
@@ -102,71 +105,80 @@
 
       <div class="panel" role="tabpanel" id="panel-picture" aria-labelledby="tab-picture" hidden>
         <div class="row">
-          <span class="label" id="background-label">Background</span>
+          <span class="label" id="background-label" data-i18n="settings.background">Background</span>
           <div class="segmented" id="background" role="radiogroup" aria-labelledby="background-label"></div>
         </div>
         <section aria-labelledby="adjust-heading">
           <div class="heading">
-            <h2 id="adjust-heading">Adjustments</h2>
-            <button type="button" class="quiet" id="reset-picture">Reset</button>
+            <h2 id="adjust-heading" data-i18n="settings.adjustments">Adjustments</h2>
+            <button type="button" class="quiet" id="reset-picture" data-i18n="settings.reset">Reset</button>
           </div>
           <div class="row">
-            <label for="brightness">Brightness</label>
+            <label for="brightness" data-i18n="settings.brightness">Brightness</label>
             <div class="slider">
               <input type="range" id="brightness" />
               <output for="brightness" id="brightness-value"></output>
             </div>
           </div>
           <div class="row">
-            <label for="contrast">Contrast</label>
+            <label for="contrast" data-i18n="settings.contrast">Contrast</label>
             <div class="slider">
               <input type="range" id="contrast" />
               <output for="contrast" id="contrast-value"></output>
             </div>
           </div>
           <div class="row toggle">
-            <label for="black-and-white">Black and white</label>
+            <label for="black-and-white" data-i18n="settings.blackAndWhite">Black and white</label>
             <input type="checkbox" role="switch" class="switch" id="black-and-white" />
           </div>
         </section>
       </div>
 
-      <div class="panel" role="tabpanel" id="panel-window" aria-labelledby="tab-window" hidden>
+      <div class="panel" role="tabpanel" id="panel-general" aria-labelledby="tab-general" hidden>
+        <div class="row">
+          <label for="language" data-i18n="settings.language">Language</label>
+          <!-- Languages are named in themselves, the system one in the current language -->
+          <select id="language">
+            <option value="system" data-i18n="language.system">System</option>
+            <option value="en">English</option>
+            <option value="tr">Türkçe</option>
+          </select>
+        </div>
         <div class="row toggle">
           <div>
-            <label for="always-on-top">Always on top</label>
-            <p class="hint">Keeps the camera above other windows.</p>
+            <label for="always-on-top" data-i18n="settings.alwaysOnTop">Always on top</label>
+            <p class="hint" data-i18n="settings.alwaysOnTopHint">Keeps the camera above other windows.</p>
           </div>
           <input type="checkbox" role="switch" class="switch" id="always-on-top" />
         </div>
         <div class="row toggle">
           <div>
-            <label for="screen-light">Screen light</label>
-            <p class="hint">A bright window that lights your face. Right-click it for its colour.</p>
+            <label for="screen-light" data-i18n="settings.screenLight">Screen light</label>
+            <p class="hint" data-i18n="settings.screenLightHint">A bright window that lights your face. Right-click it for its colour.</p>
           </div>
           <input type="checkbox" role="switch" class="switch" id="screen-light" />
         </div>
         <div class="row">
-          <label for="hide-shortcut">Hide and show</label>
+          <label for="hide-shortcut" data-i18n="settings.hideShow">Hide and show</label>
           <select id="hide-shortcut"></select>
         </div>
-        <p class="hint indented" id="hide-shortcut-hint">Works even with a game in front.</p>
-        <p class="error indented" id="hide-shortcut-taken" hidden>Another app uses this shortcut. Pick another one.</p>
+        <p class="hint indented" id="hide-shortcut-hint" data-i18n="settings.hideShowHint">Works even with a game in front.</p>
+        <p class="error indented" id="hide-shortcut-taken" data-i18n="settings.shortcutTaken" hidden>Another app uses this shortcut. Pick another one.</p>
       </div>
 
       <div class="panel" role="tabpanel" id="panel-keys" aria-labelledby="tab-keys" hidden>
-        <p class="hint">With the camera window in front:</p>
+        <p class="hint" data-i18n="keys.intro">With the camera window in front:</p>
         <dl class="keys">
-          <dt><kbd>M</kbd></dt><dd>Mirror</dd>
-          <dt><kbd>R</kbd> <kbd>Shift</kbd>+<kbd>R</kbd></dt><dd>Turn right, turn left</dd>
-          <dt><kbd>B</kbd></dt><dd>Next background</dd>
-          <dt><kbd>T</kbd></dt><dd>Always on top</dd>
-          <dt><kbd>L</kbd></dt><dd>Screen light</dd>
-          <dt><kbd>H</kbd></dt><dd>Hide</dd>
-          <dt><kbd>S</kbd></dt><dd>Settings</dd>
-          <dt><kbd>Q</kbd> <kbd>Esc</kbd></dt><dd>Exit</dd>
-          <dt>Mouse wheel</dt><dd>Resize</dd>
-          <dt>Right-click</dt><dd>Menu</dd>
+          <dt><kbd>M</kbd></dt><dd data-i18n="keys.mirror">Mirror</dd>
+          <dt><kbd>R</kbd> <kbd>Shift</kbd>+<kbd>R</kbd></dt><dd data-i18n="keys.rotate">Turn right, turn left</dd>
+          <dt><kbd>B</kbd></dt><dd data-i18n="keys.background">Next background</dd>
+          <dt><kbd>T</kbd></dt><dd data-i18n="keys.alwaysOnTop">Always on top</dd>
+          <dt><kbd>L</kbd></dt><dd data-i18n="keys.screenLight">Screen light</dd>
+          <dt><kbd>H</kbd></dt><dd data-i18n="keys.hide">Hide</dd>
+          <dt><kbd>S</kbd></dt><dd data-i18n="keys.settings">Settings</dd>
+          <dt><kbd>Q</kbd> <kbd>Esc</kbd></dt><dd data-i18n="keys.exit">Exit</dd>
+          <dt data-i18n="keys.wheel">Mouse wheel</dt><dd data-i18n="keys.resize">Resize</dd>
+          <dt data-i18n="keys.rightClick">Right-click</dt><dd data-i18n="keys.menu">Menu</dd>
         </dl>
       </div>
     </main>

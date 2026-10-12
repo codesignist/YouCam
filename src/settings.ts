@@ -5,6 +5,7 @@
 import { emit, listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import hexagonSvg from "../assets/hexagon.svg?raw";
+import { languages, option, setLanguage, t, type Language } from "./i18n";
 import {
   CHANGE,
   SETTINGS_READY,
@@ -30,6 +31,29 @@ const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) 
 // Controls that are being used keep their value; the state may lag behind
 // them while a slider is dragged
 const inUse = (el: Element) => el === document.activeElement;
+
+// ---- Words ----------------------------------------------------------------------
+
+// The words for a key such as "settings.source" or "shape.Hexagon"; a key
+// with no words (such as "quality.720p") shows its value
+function words(key: string): string {
+  const dot = key.indexOf(".");
+  return option(key.slice(0, dot), key.slice(dot + 1));
+}
+
+// Fills in every text marked with a key, here and in settings.html
+function translatePage(): void {
+  for (const el of document.querySelectorAll<HTMLElement>("[data-i18n]")) {
+    el.textContent = words(el.dataset.i18n ?? "");
+  }
+  for (const el of document.querySelectorAll<HTMLElement>("[data-i18n-title]")) {
+    el.title = words(el.dataset.i18nTitle ?? "");
+    el.setAttribute("aria-label", el.title);
+  }
+  for (const el of document.querySelectorAll<HTMLElement>("[data-i18n-aria]")) {
+    el.setAttribute("aria-label", words(el.dataset.i18nAria ?? ""));
+  }
+}
 
 // ---- Tabs ---------------------------------------------------------------------------
 
@@ -63,10 +87,11 @@ selectTab(tabs.find((t) => t.id === localStorage.getItem("settingsTab")) ?? tabs
 
 // ---- Building blocks ----------------------------------------------------------
 
-// Radio buttons that read as one control. Returns what checks a value.
+// Radio buttons that read as one control, each named by a key. Returns what
+// checks a value.
 function segmented(
   id: string,
-  options: { value: string; label: string }[],
+  options: { value: string; key: string }[],
   pick: (value: string) => void
 ): (value: string) => void {
   const group = byId(id);
@@ -78,7 +103,7 @@ function segmented(
     input.value = option.value;
     input.addEventListener("change", () => pick(option.value));
     const text = document.createElement("span");
-    text.textContent = option.label;
+    text.dataset.i18n = option.key;
     label.append(input, text);
     group.append(label);
   }
@@ -137,7 +162,7 @@ function showCameras(state: State): void {
       ...state.cameras.map((c) => new Option(c.label, c.deviceId))
     );
     if (!state.cameras.length) {
-      cameraSelect.append(new Option("No camera found", "", true, true));
+      cameraSelect.append(new Option(t("settings.noCamera"), "", true, true));
     }
     cameraSelect.disabled = !state.cameras.length;
   }
@@ -146,7 +171,7 @@ function showCameras(state: State): void {
 
 const setQuality = segmented(
   "quality",
-  qualities.map((q) => ({ value: q.label, label: q.label })),
+  qualities.map((q) => ({ value: q.label, key: `quality.${q.label}` })),
   (value) => send({ key: "quality", value })
 );
 const setMirror = toggle("mirror", (value) => send({ key: "mirror", value }));
@@ -198,7 +223,9 @@ for (const { label } of shapes) {
   input.addEventListener("change", () => send({ key: "shape", value: label }));
   const tile = document.createElement("span");
   tile.className = "tile";
-  tile.append(shapeDrawing(label), label);
+  const name = document.createElement("span");
+  name.dataset.i18n = `shape.${label}`;
+  tile.append(shapeDrawing(label), name);
   option.append(input, tile);
   shapeGroup.append(option);
 }
@@ -210,14 +237,14 @@ function setShape(value: string): void {
 
 const setSize = segmented(
   "size",
-  sizes.map((s) => ({ value: String(s.width), label: s.label })),
+  sizes.map((s) => ({ value: String(s.width), key: `size.${s.label}` })),
   (value) => send({ key: "size", value: Number(value) })
 );
 const sizeHint = byId("size-hint");
 
 const setAspect = segmented(
   "aspect",
-  aspectRatios.map((r) => ({ value: r, label: r === "None" ? "Free" : r })),
+  aspectRatios.map((r) => ({ value: r, key: `aspect.${r}` })),
   (value) => send({ key: "aspectRatio", value })
 );
 
@@ -225,7 +252,7 @@ const setAspect = segmented(
 
 const setBackground = segmented(
   "background",
-  backgrounds.map((b) => ({ value: b, label: b })),
+  backgrounds.map((b) => ({ value: b, key: `background.${b}` })),
   (value) => {
     const background = backgrounds.find((b) => b === value);
     if (background) send({ key: "background", value: background });
@@ -253,19 +280,19 @@ resetPicture.addEventListener("click", () => {
 const swatches = byId("border-colors");
 const customSwatch = swatches.querySelector(".custom") as HTMLLabelElement;
 const customColor = byId<HTMLInputElement>("custom-color");
-const presetSwatches = [{ label: "No border", color: "off" }, ...borderColors].map(
-  ({ label, color }) => {
-    const swatch = document.createElement("button");
-    swatch.type = "button";
-    swatch.className = color === "off" ? "swatch off" : "swatch";
-    swatch.title = label;
-    swatch.setAttribute("aria-label", label);
-    swatch.style.setProperty("--swatch", color);
-    swatch.addEventListener("click", () => send({ key: "borderColor", value: color }));
-    customSwatch.before(swatch);
-    return { swatch, color };
-  }
-);
+const presetSwatches = [
+  { key: "settings.noBorder", color: "off" },
+  ...borderColors.map((c) => ({ key: `color.${c.label}`, color: c.color })),
+].map(({ key, color }) => {
+  const swatch = document.createElement("button");
+  swatch.type = "button";
+  swatch.className = color === "off" ? "swatch off" : "swatch";
+  swatch.dataset.i18nTitle = key;
+  swatch.style.setProperty("--swatch", color);
+  swatch.addEventListener("click", () => send({ key: "borderColor", value: color }));
+  customSwatch.before(swatch);
+  return { swatch, color };
+});
 // Fires while the colour changes in the picker too, so the border follows
 customColor.addEventListener("input", () =>
   send({ key: "borderColor", value: customColor.value })
@@ -313,9 +340,30 @@ const setScreenLight = toggle("screen-light", (value) =>
   send({ key: "screenLight", value })
 );
 const shortcutSelect = byId<HTMLSelectElement>("hide-shortcut");
-shortcutSelect.append(
-  ...hideShortcuts.map((s) => new Option(s.label === "Off" ? "No shortcut" : s.label, s.label))
-);
+for (const { label } of hideShortcuts) {
+  const choice = new Option(label, label);
+  if (label === "Off") choice.dataset.i18n = "settings.noShortcut";
+  shortcutSelect.append(choice);
+}
+
+const languageSelect = byId<HTMLSelectElement>("language");
+languageSelect.addEventListener("change", () => {
+  const value = languages.find((l) => l === languageSelect.value);
+  if (value) send({ key: "language", value });
+});
+
+// The whole window follows the language, from the first state on
+let shownLanguage: Language | undefined;
+function showLanguage(state: State): void {
+  if (state.language !== shownLanguage) {
+    shownLanguage = state.language;
+    setLanguage(state.language);
+    translatePage();
+    shownCameras = ""; // "No camera found" is in words too
+    void win.setTitle(t("title.settings"));
+  }
+  if (!inUse(languageSelect)) languageSelect.value = state.language;
+}
 shortcutSelect.addEventListener("change", () =>
   send({ key: "hideShortcut", value: shortcutSelect.value })
 );
@@ -323,13 +371,14 @@ shortcutSelect.addEventListener("change", () =>
 // ---- State ------------------------------------------------------------------------
 
 function render(state: State): void {
+  showLanguage(state);
   showCameras(state);
   setQuality(state.quality);
   setMirror(state.mirror);
 
   setShape(state.shape);
   setSize(String(state.width));
-  sizeHint.textContent = `Now ${state.width} × ${state.height}. Scroll on the camera for any size in between.`;
+  sizeHint.textContent = t("settings.sizeHint", { width: state.width, height: state.height });
   setAspect(state.aspectRatio);
 
   setBackground(state.background);

@@ -265,9 +265,11 @@ button.quiet:disabled {
   background: var(--track);
 }
 
+/* Even widths where the words allow, wider where they need it (Turkish
+   words are longer) */
 .segmented label {
   position: relative;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
 }
 

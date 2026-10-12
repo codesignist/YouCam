@@ -1,6 +1,7 @@
 // The camera window's settings and their choices, shared by the camera window
 // (main.ts) and the settings window (settings.ts), and what the two tell each
 // other as Tauri events.
+import type { Language } from "./i18n";
 
 export const qualities = [
   { label: "480p", width: 640, height: 480 },
@@ -73,6 +74,7 @@ export interface Settings {
   alwaysOnTop: boolean;
   screenLight: boolean;
   hideShortcut: string;
+  language: Language;
 }
 
 // What the settings window shows: the settings and what goes with them
