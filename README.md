@@ -45,7 +45,7 @@ Kamerayı sürükleyerek taşıyın, üstünde tekerleği çevirerek boyutunu de
 | `Q` / `Esc` | Çıkış |
 | `Ctrl+Shift+Y` | Her yerden gizle / göster, oyundan odağı almadan (ayarlardan değiştirilebilir) |
 
-Tray simgesine tıklamak da pencereyi gizler ve gösterir.
+Tray simgesine tıklamak da pencereyi gizler ve gösterir. YouCam açıkken yeniden başlatmak ikinci bir pencere açmaz, açık olanı gösterir.
 
 ### Ekran ışığı
 

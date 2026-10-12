@@ -45,7 +45,7 @@ Drag the camera to move it and scroll on it to resize it. With `Ctrl` held, scro
 | `Q` / `Esc` | Exit |
 | `Ctrl+Shift+Y` | Hide / show from anywhere, without taking the focus from a game (can be changed in the settings) |
 
-Clicking the tray icon also hides and shows the window.
+Clicking the tray icon also hides and shows the window. Starting YouCam while it is running doesn't open a second window; it shows the one that is open.
 
 ### Screen light
 
