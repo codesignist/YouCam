@@ -1,85 +1,69 @@
 # YouCam
 
-Advanced desktop webcam application for youtube streamers.
+A small webcam window for YouTubers and streamers. It keeps your camera on screen in a circle, hexagon or other shape, on top of everything, so you can see yourself while you record. OBS doesn't show you yourself while it records your camera; you'd need another app or a second monitor. YouCam is that app.
 
-[Türkçe/Turkish](README.md)
+[Türkçe](README.md)
 
-![YouCamSS](https://user-images.githubusercontent.com/1472881/100539154-81fe7000-3245-11eb-933d-9c6ad3253a8d.PNG)
+![YouCam](https://user-images.githubusercontent.com/1472881/100539154-81fe7000-3245-11eb-933d-9c6ad3253a8d.PNG)
 
-### Motivation
+## Features
 
-Unfortunately in OBS studio you cant see yourself while having your camera recorded. For that you need an extra application or a referrence monitor. This app was made because of that extra application not existing and to try out NW.js. It has since moved to [Tauri](https://tauri.app/) and TypeScript.
+- Circle, hexagon, rounded or square, with a coloured border if you like
+- Stays on top of other windows; drag it to move it, scroll on it to resize it
+- Background blur or dark blur, done on your computer (nothing is uploaded)
+- Brightness, contrast, black and white, mirror and rotation
+- Screen light: a second window that lights your face with a monitor, in white or an accent colour
+- Hide and show it from anywhere with `Ctrl+Shift+Y`, even with a game in front; the camera is off while it is hidden
+- Says what is wrong when the camera can't start, and reconnects by itself when it comes back
+- Remembers the camera, the settings and where the window was
 
-### Install
+## Download
 
-Requirements: [Node.js](https://nodejs.org/) with [pnpm](https://pnpm.io/), [Rust](https://rustup.rs/) and, on Windows, the "Desktop development with C++" part of Visual Studio Build Tools. WebView2 already comes with Windows 10/11. For other platforms see the [Tauri prerequisites](https://tauri.app/start/prerequisites/).
+For Windows 10 and 11, from [the latest release](https://github.com/codesignist/YouCam/releases/latest):
 
-Install dependencies:
+- `youcam-<version>-win-x64-setup.exe`: the installer
+- `youcam-<version>-win-x64-portable.zip`: just `youcam.exe`, nothing to install
 
-```
-pnpm install
-```
+YouCam isn't code-signed, so Windows SmartScreen may warn you the first time you run it.
 
-To run the app in development mode:
+## Usage
 
-```
-pnpm dev
-```
-
-To build the installer:
-
-```
-pnpm build
-```
-
-The Windows installer is written to `src-tauri/target/release/bundle/nsis/` and the app itself to `src-tauri/target/release/youcam.exe`. Run `pnpm typecheck` to type-check.
-
-## Used Package(s)
-
-- [Tauri](https://tauri.app/) — desktop runtime (uses the system WebView)
-- [TypeScript](https://www.typescriptlang.org/) and [Vite](https://vite.dev/) — language and build tool
-- [MediaPipe](https://ai.google.dev/edge/mediapipe) — background blur (selfie segmentation model, Apache-2.0)
-
-## Keyboard Shortcuts
+Drag the camera to move it and scroll on it to resize it. Right-click it for the menu: camera, background, mirror, screen light, settings, hide and exit. Everything else is in the settings window (Settings... or `S`), which opens next to the camera so you can see each change as you make it.
 
 | Key | Action |
 |---|---|
-| `M` | Toggle mirror |
+| `M` | Mirror |
 | `R` / `Shift+R` | Rotate clockwise / counter-clockwise |
 | `B` | Background: off / blur / dark blur |
-| `T` | Toggle always on top |
-| `L` | Toggle screen light |
-| `H` | Hide the window |
-| `S` | Settings window |
-| `Ctrl+Shift+Y` | Hide / show the window from anywhere (even with a game in front, without taking its focus). Change it in the settings window. |
+| `T` | Always on top |
+| `L` | Screen light |
+| `H` | Hide |
+| `S` | Settings |
 | `Q` / `Esc` | Exit |
-| Mouse wheel | Resize the window |
-| Right click | Menu: camera, background, mirror, screen light, settings, hide, exit |
-| Tray icon click | Hide / show the window |
+| `Ctrl+Shift+Y` | Hide / show from anywhere, without taking the focus from a game (can be changed in the settings) |
 
-Everything else is in the settings window (right-click > Settings... or `S`): camera quality and rotation, shape, size and aspect ratio, brightness, contrast, black and white, border colour and width, always on top and the hide/show shortcut. It opens next to the camera, and changes show on the camera as they are made.
+Clicking the tray icon also hides and shows the window.
 
-The screen light is a separate light window for lighting your face with a monitor (e.g. the second one in fullscreen). Right-click it to pick a colour temperature: White (6500K, brightest), Daylight (5600K), Neutral (4500K), Warm (3200K). For the best result, pick the one closest to the other lights in the room. There are also the accent colours streamers use most for a coloured side or back light: Red, Pink, Purple, Blue, Cyan. Apart from Cyan they give far less light than white, so use them as an accent rather than the main light. For any other colour, Custom... opens a colour picker. Double-click, `F` or `F11` toggles fullscreen, `Esc` leaves it and `L` closes it. Its colour, position, size and fullscreen state are remembered.
+### Screen light
 
-## Todo
+The screen light is a plain window for lighting your face with a monitor, e.g. a second monitor in fullscreen. Right-click it for its colour: White (6500K, the brightest), Daylight (5600K), Neutral (4500K) or Warm (3200K); pick the one closest to the other lights in the room. Red, Pink, Purple, Blue and Cyan are for a coloured side or back light; apart from Cyan they give far less light than white. Custom... picks any colour. Double-click, `F` or `F11` toggles fullscreen, `Esc` leaves it and `L` closes the light. It remembers its colour, place and fullscreen state.
 
-- [x] Size setups
-- [x] Curved sides and other shapes
-- [x] Mirror feature
-- [x] English ReadMe.md
-- [x] Keyboard shortcuts
-- [x] Remember selected camera
-- [x] Video quality selection (480p / 720p / 1080p)
-- [x] Remember window position and size
-- [x] Background blur
-- [x] Dark blurred background
-- [x] Screen light
-- [x] Camera problems shown in the window, automatic reconnect
-- [x] Hide / show with a global shortcut and the tray (the camera is off while hidden)
-- [x] Image adjustments: brightness, contrast, black and white
-- [x] Coloured border that follows the shape
-- [x] Settings window, a shorter right-click menu
+## Building from source
+
+You need [Node.js](https://nodejs.org/) with [pnpm](https://pnpm.io/), and what [Tauri needs](https://tauri.app/start/prerequisites/): Rust and, on Windows, the Visual Studio C++ build tools.
+
+```
+pnpm install
+pnpm dev     # run it
+pnpm build   # installer in src-tauri/target/release/bundle/nsis/
+```
+
+Built with [Tauri](https://tauri.app/), TypeScript and [Vite](https://vite.dev/). Background blur uses [MediaPipe](https://ai.google.dev/edge/mediapipe)'s selfie segmentation model (Apache-2.0).
 
 ## Contributing
 
-You can submit the features you would like to see or contribute by making a PR.
+Ideas and pull requests are welcome. Open an [issue](https://github.com/codesignist/YouCam/issues) for a feature you'd like to see.
+
+## License
+
+[ISC](LICENSE)
