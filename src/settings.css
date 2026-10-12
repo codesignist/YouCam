@@ -44,12 +44,85 @@ body {
   margin: 0;
 }
 
+/* ---- Tabs: one bar across the top, the open one underlined in green ---- */
+
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 6px 10px 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.tabs button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 2px 9px;
+  border: 0;
+  border-radius: 8px 8px 0 0;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tabs button:hover {
+  color: var(--ink);
+}
+
+.tabs button[aria-selected="true"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.tabs button[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  right: 22%;
+  bottom: -1px;
+  left: 22%;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent-fill);
+}
+
+.tabs svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.tabs svg .filled {
+  fill: currentColor;
+}
+
+.tabs button[aria-selected="true"] svg {
+  color: var(--accent);
+}
+
+.tabs button:focus-visible {
+  outline-offset: -2px;
+}
+
 main {
-  padding: 8px 22px 28px;
+  padding: 18px 22px 24px;
 }
 
 section {
   padding-top: 22px;
+}
+
+.panel > section:first-child {
+  padding-top: 0;
 }
 
 h2,
@@ -446,8 +519,8 @@ input[type="range"]:disabled {
 .keys {
   display: grid;
   grid-template-columns: var(--label-width) minmax(0, 1fr);
-  gap: 6px 12px;
-  margin: 8px 0 0;
+  gap: 8px 12px;
+  margin: 12px 0 0;
 }
 
 .keys dt {

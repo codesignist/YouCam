@@ -150,7 +150,6 @@ interface MenuEntry {
 // Only what is used most; everything else is in the settings window
 function buildMenuEntries(): MenuEntry[] {
   return [
-    { label: "YouCam", action: () => void setHidden(false) },
     {
       label: "Cam source",
       submenu: videoDevices.map((device, i) => ({
@@ -463,7 +462,7 @@ function toggleScreenLight(): void {
 
 // Logical pixels
 const SETTINGS_WIDTH = 400;
-const SETTINGS_HEIGHT = 680;
+const SETTINGS_HEIGHT = 504; // the tallest tab, Shape, without scrolling
 
 // Opens it next to the camera window, so changes can be seen while making
 // them, or brings it to the front if it is open (also after a dev-server

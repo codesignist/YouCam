@@ -17,9 +17,31 @@
       </defs>
     </svg>
 
+    <nav class="tabs" role="tablist" aria-label="Settings">
+      <button type="button" role="tab" id="tab-camera" aria-controls="panel-camera">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="5.5" width="10.5" height="9" rx="2" /><path d="M13 9l4.5-2.5v7L13 11" /></svg>
+        Camera
+      </button>
+      <button type="button" role="tab" id="tab-shape" aria-controls="panel-shape">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6.2 3.5h7.6l3.7 6.5-3.7 6.5H6.2L2.5 10z" /></svg>
+        Shape
+      </button>
+      <button type="button" role="tab" id="tab-picture" aria-controls="panel-picture">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" /><path d="M10 3a7 7 0 0 1 0 14z" class="filled" /></svg>
+        Picture
+      </button>
+      <button type="button" role="tab" id="tab-window" aria-controls="panel-window">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2" /><path d="M2.5 7.5h15" /></svg>
+        Window
+      </button>
+      <button type="button" role="tab" id="tab-keys" aria-controls="panel-keys">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="5" width="16" height="10.5" rx="2" /><path d="M5.5 8.5h1M9.5 8.5h1M13.5 8.5h1M6.5 12h7" /></svg>
+        Keys
+      </button>
+    </nav>
+
     <main>
-      <section aria-labelledby="camera-heading">
-        <h2 id="camera-heading">Camera</h2>
+      <div class="panel" role="tabpanel" id="panel-camera" aria-labelledby="tab-camera" hidden>
         <div class="row">
           <label for="camera">Source</label>
           <select id="camera"></select>
@@ -45,69 +67,71 @@
             </button>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section aria-labelledby="shape-heading">
-        <h2 id="shape-heading">Shape and size</h2>
-        <div class="shapes" id="shape" role="radiogroup" aria-labelledby="shape-heading"></div>
-        <div class="row">
-          <span class="label" id="size-label">Size</span>
-          <div class="segmented" id="size" role="radiogroup" aria-labelledby="size-label"></div>
-        </div>
-        <p class="hint indented" id="size-hint"></p>
-        <div class="row">
-          <span class="label" id="aspect-label">Aspect ratio</span>
-          <div class="segmented" id="aspect" role="radiogroup" aria-labelledby="aspect-label"></div>
-        </div>
-      </section>
+      <div class="panel" role="tabpanel" id="panel-shape" aria-labelledby="tab-shape" hidden>
+        <section aria-labelledby="shape-heading">
+          <h2 id="shape-heading">Shape and size</h2>
+          <div class="shapes" id="shape" role="radiogroup" aria-labelledby="shape-heading"></div>
+          <div class="row">
+            <span class="label" id="size-label">Size</span>
+            <div class="segmented" id="size" role="radiogroup" aria-labelledby="size-label"></div>
+          </div>
+          <p class="hint indented" id="size-hint"></p>
+          <div class="row">
+            <span class="label" id="aspect-label">Aspect ratio</span>
+            <div class="segmented" id="aspect" role="radiogroup" aria-labelledby="aspect-label"></div>
+          </div>
+        </section>
+        <section aria-labelledby="border-heading">
+          <h2 id="border-heading">Border</h2>
+          <div class="swatches" id="border-colors" role="group" aria-labelledby="border-heading">
+            <label class="swatch custom" title="Any colour">
+              <input type="color" id="custom-color" aria-label="Pick any colour" />
+            </label>
+          </div>
+          <div class="row">
+            <label for="border-width">Width</label>
+            <div class="slider">
+              <input type="range" id="border-width" />
+              <output for="border-width" id="border-width-value"></output>
+            </div>
+          </div>
+        </section>
+      </div>
 
-      <section aria-labelledby="picture-heading">
-        <div class="heading">
-          <h2 id="picture-heading">Picture</h2>
-          <button type="button" class="quiet" id="reset-picture">Reset</button>
-        </div>
+      <div class="panel" role="tabpanel" id="panel-picture" aria-labelledby="tab-picture" hidden>
         <div class="row">
           <span class="label" id="background-label">Background</span>
           <div class="segmented" id="background" role="radiogroup" aria-labelledby="background-label"></div>
         </div>
-        <div class="row">
-          <label for="brightness">Brightness</label>
-          <div class="slider">
-            <input type="range" id="brightness" />
-            <output for="brightness" id="brightness-value"></output>
+        <section aria-labelledby="adjust-heading">
+          <div class="heading">
+            <h2 id="adjust-heading">Adjustments</h2>
+            <button type="button" class="quiet" id="reset-picture">Reset</button>
           </div>
-        </div>
-        <div class="row">
-          <label for="contrast">Contrast</label>
-          <div class="slider">
-            <input type="range" id="contrast" />
-            <output for="contrast" id="contrast-value"></output>
+          <div class="row">
+            <label for="brightness">Brightness</label>
+            <div class="slider">
+              <input type="range" id="brightness" />
+              <output for="brightness" id="brightness-value"></output>
+            </div>
           </div>
-        </div>
-        <div class="row toggle">
-          <label for="black-and-white">Black and white</label>
-          <input type="checkbox" role="switch" class="switch" id="black-and-white" />
-        </div>
-      </section>
+          <div class="row">
+            <label for="contrast">Contrast</label>
+            <div class="slider">
+              <input type="range" id="contrast" />
+              <output for="contrast" id="contrast-value"></output>
+            </div>
+          </div>
+          <div class="row toggle">
+            <label for="black-and-white">Black and white</label>
+            <input type="checkbox" role="switch" class="switch" id="black-and-white" />
+          </div>
+        </section>
+      </div>
 
-      <section aria-labelledby="border-heading">
-        <h2 id="border-heading">Border</h2>
-        <div class="swatches" id="border-colors" role="group" aria-labelledby="border-heading">
-          <label class="swatch custom" title="Any colour">
-            <input type="color" id="custom-color" aria-label="Pick any colour" />
-          </label>
-        </div>
-        <div class="row">
-          <label for="border-width">Width</label>
-          <div class="slider">
-            <input type="range" id="border-width" />
-            <output for="border-width" id="border-width-value"></output>
-          </div>
-        </div>
-      </section>
-
-      <section aria-labelledby="window-heading">
-        <h2 id="window-heading">Window</h2>
+      <div class="panel" role="tabpanel" id="panel-window" aria-labelledby="tab-window" hidden>
         <div class="row toggle">
           <div>
             <label for="always-on-top">Always on top</label>
@@ -128,10 +152,9 @@
         </div>
         <p class="hint indented" id="hide-shortcut-hint">Works even with a game in front.</p>
         <p class="error indented" id="hide-shortcut-taken" hidden>Another app uses this shortcut. Pick another one.</p>
-      </section>
+      </div>
 
-      <section aria-labelledby="keys-heading">
-        <h2 id="keys-heading">Keys</h2>
+      <div class="panel" role="tabpanel" id="panel-keys" aria-labelledby="tab-keys" hidden>
         <p class="hint">With the camera window in front:</p>
         <dl class="keys">
           <dt><kbd>M</kbd></dt><dd>Mirror</dd>
@@ -145,7 +168,7 @@
           <dt>Mouse wheel</dt><dd>Resize</dd>
           <dt>Right-click</dt><dd>Menu</dd>
         </dl>
-      </section>
+      </div>
     </main>
     <script type="module" src="/src/settings.ts"></script>
   </body>

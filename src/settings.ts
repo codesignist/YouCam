@@ -31,6 +31,36 @@ const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) 
 // them while a slider is dragged
 const inUse = (el: Element) => el === document.activeElement;
 
+// ---- Tabs ---------------------------------------------------------------------------
+
+// The open one is remembered for the next time the window opens
+const tabs = [...document.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+function selectTab(tab: HTMLButtonElement): void {
+  for (const t of tabs) {
+    const selected = t === tab;
+    t.setAttribute("aria-selected", String(selected));
+    t.tabIndex = selected ? 0 : -1; // Tab moves into the panel, arrows between tabs
+    byId(t.getAttribute("aria-controls") ?? "").hidden = !selected;
+  }
+  localStorage.setItem("settingsTab", tab.id);
+}
+for (const tab of tabs) tab.addEventListener("click", () => selectTab(tab));
+byId("tab-camera").parentElement?.addEventListener("keydown", (ev) => {
+  const i = tabs.indexOf(document.activeElement as HTMLButtonElement);
+  if (i < 0) return;
+  const next = {
+    ArrowLeft: (i - 1 + tabs.length) % tabs.length,
+    ArrowRight: (i + 1) % tabs.length,
+    Home: 0,
+    End: tabs.length - 1,
+  }[ev.key];
+  if (next === undefined) return;
+  ev.preventDefault();
+  selectTab(tabs[next]);
+  tabs[next].focus();
+});
+selectTab(tabs.find((t) => t.id === localStorage.getItem("settingsTab")) ?? tabs[0]);
+
 // ---- Building blocks ----------------------------------------------------------
 
 // Radio buttons that read as one control. Returns what checks a value.
