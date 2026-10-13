@@ -14,6 +14,8 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = ["tray-icon", "image-png"] }
 # The hide/show shortcut that works while another app (e.g. a game) has focus
 tauri-plugin-global-shortcut = "2"
+# Opens the download page of a new version in the browser
+tauri-plugin-opener = "2"
 # Starting it again brings back the running one instead of a second camera
 # window and tray icon
 tauri-plugin-single-instance = "2"

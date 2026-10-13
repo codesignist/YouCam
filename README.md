@@ -17,6 +17,7 @@ YouTuber'lar ve yayıncılar için küçük bir webcam penceresi. Kameranızı d
 - `Ctrl+Shift+Y` ile her yerden gizleyip gösterme, oyun öndeyken bile; gizliyken kamera kapalıdır
 - Kamera açılamazsa nedenini söyler, kamera geri gelince kendiliğinden bağlanır
 - Kamerayı, ayarları ve pencerenin yerini hatırlar
+- Yeni sürüm çıkınca haber verir: açılışta ve günde bir kez GitHub'a sorar, ayarlardan kapatılabilir
 - Türkçe ya da İngilizce: Windows'un dilini izler, ayarlardan da seçilebilir
 
 ## İndirme

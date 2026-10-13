@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-YouCam is a Windows-only (WebView2, NSIS installer) Tauri 2 app: a frameless, shaped, always-on-top webcam window for streamers, plus a "screen light" window and a settings window. The frontend is TypeScript + Vite with no UI framework. Almost all logic runs in TypeScript through `@tauri-apps/api`. The Rust side ([src-tauri/src/main.rs](src-tauri/src/main.rs)) only registers the single-instance and global-shortcut plugins and quits the app when the `main` window is destroyed. A second launch emits `youcam:second-instance`, which `main.ts` answers by showing its window.
+YouCam is a Windows-only (WebView2, NSIS installer) Tauri 2 app: a frameless, shaped, always-on-top webcam window for streamers, plus a "screen light" window and a settings window. The frontend is TypeScript + Vite with no UI framework. Almost all logic runs in TypeScript through `@tauri-apps/api`. The Rust side ([src-tauri/src/main.rs](src-tauri/src/main.rs)) only registers the single-instance, global-shortcut and opener plugins and quits the app when the `main` window is destroyed. A second launch emits `youcam:second-instance`, which `main.ts` answers by showing its window.
 
 ## Commands
 

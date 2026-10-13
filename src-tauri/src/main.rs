@@ -11,6 +11,7 @@ fn main() {
             let _ = app.emit("youcam:second-instance", ());
         }))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_opener::init())
         // Closing the camera window quits the app, screen light included
         .on_window_event(|window, event| {
             if window.label() == "main" {

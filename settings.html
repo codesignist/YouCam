@@ -179,6 +179,16 @@
         </div>
         <p class="hint indented" id="hide-shortcut-hint" data-i18n="settings.hideShowHint">Works even with a game in front.</p>
         <p class="error indented" id="hide-shortcut-taken" data-i18n="settings.shortcutTaken" hidden>Another app uses this shortcut. Pick another one.</p>
+        <div class="row toggle">
+          <div>
+            <label for="check-updates" data-i18n="settings.checkUpdates">Check for new versions</label>
+            <p class="hint">
+              <span id="version-hint"></span>
+              <button type="button" class="quiet" id="download" data-i18n="settings.download" hidden>Download</button>
+            </p>
+          </div>
+          <input type="checkbox" role="switch" class="switch" id="check-updates" />
+        </div>
       </div>
 
       <div class="panel" role="tabpanel" id="panel-keys" aria-labelledby="tab-keys" hidden>

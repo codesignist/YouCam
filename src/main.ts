@@ -18,7 +18,9 @@ import {
 import { emit, listen } from "@tauri-apps/api/event";
 import { TrayIcon } from "@tauri-apps/api/tray";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { getVersion } from "@tauri-apps/api/app";
 import { register, unregisterAll } from "@tauri-apps/plugin-global-shortcut";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import hexagonSvg from "../assets/hexagon.svg?raw";
 import trayIconUrl from "../assets/icon-tray.png?url";
 import type { BackgroundEffect, BackgroundMode, Crop } from "./background";
@@ -93,6 +95,11 @@ let blackAndWhite = localStorage.getItem("blackAndWhite") === "true";
 let borderColor = savedColor("borderColor") ?? "off";
 let customBorderColor = savedColor("borderCustomColor") ?? "#ffffff";
 let borderWidth = savedNumber("borderWidth", borderWidthRange, borderWidthRange.initial);
+// Whether to ask GitHub for a new version (see checkForUpdate), and a newer
+// one than this once it is found
+let checkUpdates = localStorage.getItem("checkUpdates") !== "false";
+const version = await getVersion();
+let newVersion = "";
 
 // Digital zoom, and the point of the camera image to keep in the middle of
 // the window as far as the image's edges allow, in fractions of its width
@@ -200,6 +207,9 @@ function buildMenuEntries(): MenuEntry[] {
     },
     { separator: true },
     { label: t("menu.settings"), action: () => void openSettings() },
+    ...(newVersion
+      ? [{ label: t("menu.download", { version: newVersion }), action: openDownloadPage }]
+      : []),
     // Only the tray menu is there while the window is hidden
     {
       label: hidden ? t("menu.show") : t("menu.hide"),
@@ -674,6 +684,7 @@ function currentState(): State {
     screenLight: light !== null,
     hideShortcut,
     language,
+    checkUpdates,
     cameras: videoDevices.map((device, i) => ({
       deviceId: device.deviceId,
       label: cameraName(device, i),
@@ -687,6 +698,8 @@ function currentState(): State {
       framing.x !== WHOLE_PICTURE.x ||
       framing.y !== WHOLE_PICTURE.y,
     zoomSoft: zoomSoft(),
+    version,
+    newVersion,
   };
 }
 
@@ -751,6 +764,12 @@ function applyChange(change: Change): void {
       break;
     case "language":
       changeLanguage(change.value);
+      break;
+    case "checkUpdates":
+      setCheckUpdates(change.value);
+      break;
+    case "download":
+      openDownloadPage();
       break;
     case "rotate":
       rotate(change.value);
@@ -819,11 +838,13 @@ function setCameraMessage(message: Message | null): void {
   renderMessage(message);
 }
 
-function showNotice(message: Message): void {
-  if (cameraMessage) return; // the camera not working matters more
+// Returns whether it was shown
+function showNotice(message: Message, ms = 4000): boolean {
+  if (cameraMessage) return false; // the camera not working matters more
   clearTimeout(noticeTimer);
   renderMessage(message);
-  noticeTimer = setTimeout(() => renderMessage(null), 4000);
+  noticeTimer = setTimeout(() => renderMessage(null), ms);
+  return true;
 }
 
 // ---- Hiding ------------------------------------------------------------------
@@ -908,6 +929,81 @@ function setHideShortcut(label: string): void {
 // this window back instead of opening a second one (see src-tauri). Not
 // awaited: events must wait until the rest of this page is set up.
 void listen("youcam:second-instance", () => void setHidden(false));
+
+// ---- New versions --------------------------------------------------------------
+
+// Unless it is turned off, YouCam asks GitHub for its latest release at start
+// and once a day; nothing else is sent. A newer one is offered in the menu
+// and the settings window, and said once in a notice.
+const LATEST_RELEASE = "https://api.github.com/repos/codesignist/YouCam/releases/latest";
+// The only page YouCam may open (see src-tauri/capabilities)
+const DOWNLOAD_PAGE = "https://github.com/codesignist/YouCam/releases/latest";
+
+// "2.1.0" or "v2.1.0" as numbers to compare
+function versionParts(value: string): number[] | undefined {
+  return /^v?(\d+)\.(\d+)\.(\d+)$/.exec(value)?.slice(1).map(Number);
+}
+
+function isNewer(a: string, b: string): boolean {
+  const [pa, pb] = [versionParts(a), versionParts(b)];
+  if (!pa || !pb) return false;
+  const i = pa.findIndex((n, j) => n !== pb[j]);
+  return i >= 0 && pa[i] > pb[i];
+}
+
+async function checkForUpdate(): Promise<void> {
+  if (!checkUpdates) return;
+  let latest: string;
+  try {
+    const response = await fetch(LATEST_RELEASE, { signal: AbortSignal.timeout(15000) });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const release: { tag_name?: unknown } = await response.json();
+    latest = String(release.tag_name ?? "").replace(/^v/, "");
+  } catch (err) {
+    console.error("update check:", err); // e.g. offline; asked again tomorrow
+    return;
+  }
+  if (!checkUpdates) return; // turned off while asking
+  const found = isNewer(latest, version) ? latest : "";
+  if (found !== newVersion) {
+    newVersion = found;
+    stateChanged();
+  }
+  if (!found || hidden || localStorage.getItem("updateNotice") === found) return;
+  const shown = showNotice(
+    {
+      title: t("message.newVersion", { version: found }),
+      hint: t("message.newVersionHint"),
+      actions: [
+        {
+          label: t("message.download"),
+          action: () => {
+            renderMessage(null);
+            openDownloadPage();
+          },
+        },
+      ],
+    },
+    10000
+  );
+  // Once for each version; the menu keeps offering it
+  if (shown) localStorage.setItem("updateNotice", found);
+}
+
+function openDownloadPage(): void {
+  openUrl(DOWNLOAD_PAGE).catch((err) => console.error("download page:", err));
+}
+
+function setCheckUpdates(value: boolean): void {
+  checkUpdates = value;
+  localStorage.setItem("checkUpdates", String(checkUpdates));
+  if (checkUpdates) void checkForUpdate();
+  else newVersion = "";
+  stateChanged();
+}
+
+void checkForUpdate();
+setInterval(() => void checkForUpdate(), 24 * 60 * 60 * 1000);
 
 // ---- Background effects ------------------------------------------------------
 

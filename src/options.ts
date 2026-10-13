@@ -81,6 +81,7 @@ export interface Settings {
   screenLight: boolean;
   hideShortcut: string;
   language: Language;
+  checkUpdates: boolean; // ask GitHub for a new version
 }
 
 // What the settings window shows: the settings and what goes with them
@@ -94,6 +95,8 @@ export interface State extends Settings {
   reframed: boolean; // zoomed or moved, so there is something to reset
   // Zoomed in past the camera's pixels, while a higher quality would have more
   zoomSoft: boolean;
+  version: string; // this one's
+  newVersion: string; // a newer one on GitHub, or ""
 }
 
 // A setting changed in the settings window, or one of its buttons
@@ -101,7 +104,8 @@ export type Change =
   | { [K in keyof Settings]: { key: K; value: Settings[K] } }[keyof Settings]
   | { key: "rotate"; value: 90 | -90 }
   | { key: "size"; value: number }
-  | { key: "resetFraming" };
+  | { key: "resetFraming" }
+  | { key: "download" };
 
 // The settings window asks for the state once it is listening
 export const SETTINGS_READY = "youcam:settings-ready";

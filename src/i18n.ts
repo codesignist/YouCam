@@ -14,6 +14,7 @@ const en = {
   "menu.settings": "Settings... (S)",
   "menu.hide": "Hide (H)",
   "menu.show": "Show",
+  "menu.download": "Download version {version}...",
   "menu.exit": "Exit (Q)",
   "camera.unnamed": "Camera {n}",
 
@@ -42,6 +43,9 @@ const en = {
   "message.backgroundFailedHint": "It is off for now; press B to try again.",
   "message.shortcutTaken": "{shortcut} is taken",
   "message.shortcutTakenHint": "Another app uses it; pick another in Settings.",
+  "message.newVersion": "YouCam {version} is out",
+  "message.newVersionHint": "Download it now, or later from the right-click menu.",
+  "message.download": "Download",
 
   // Window titles
   "title.settings": "YouCam Settings",
@@ -112,6 +116,11 @@ const en = {
   "settings.noShortcut": "No shortcut",
   "settings.hideShowHint": "Works even with a game in front.",
   "settings.shortcutTaken": "Another app uses this shortcut. Pick another one.",
+  "settings.checkUpdates": "Check for new versions",
+  "settings.version": "You have version {version}.",
+  "settings.checkUpdatesHint": "YouCam asks GitHub for a newer one at start and once a day.",
+  "settings.newVersion": "YouCam {new} is out; you have {version}.",
+  "settings.download": "Download",
 
   "keys.intro": "With the camera window in front:",
   "keys.mirror": "Mirror",
@@ -157,6 +166,7 @@ const tr: Record<MessageKey, string> = {
   "menu.settings": "Ayarlar... (S)",
   "menu.hide": "Gizle (H)",
   "menu.show": "Göster",
+  "menu.download": "{version} sürümünü indir...",
   "menu.exit": "Çıkış (Q)",
   "camera.unnamed": "Kamera {n}",
 
@@ -184,6 +194,9 @@ const tr: Record<MessageKey, string> = {
   "message.backgroundFailedHint": "Şimdilik kapalı; tekrar denemek için B'ye basın.",
   "message.shortcutTaken": "{shortcut} kullanımda",
   "message.shortcutTakenHint": "Başka bir uygulama kullanıyor; ayarlardan başka bir kısayol seçin.",
+  "message.newVersion": "YouCam {version} çıktı",
+  "message.newVersionHint": "Şimdi ya da sonra sağ tık menüsünden indirebilirsiniz.",
+  "message.download": "İndir",
 
   "title.settings": "YouCam Ayarları",
   "title.light": "YouCam Ekran Işığı",
@@ -252,6 +265,11 @@ const tr: Record<MessageKey, string> = {
   "settings.noShortcut": "Kısayol yok",
   "settings.hideShowHint": "Oyun öndeyken bile çalışır.",
   "settings.shortcutTaken": "Bu kısayolu başka bir uygulama kullanıyor. Başka birini seçin.",
+  "settings.checkUpdates": "Yeni sürümleri kontrol et",
+  "settings.version": "Sizdeki sürüm: {version}.",
+  "settings.checkUpdatesHint": "YouCam açılışta ve günde bir kez GitHub'a daha yenisini sorar.",
+  "settings.newVersion": "YouCam {new} çıktı; sizdeki {version}.",
+  "settings.download": "İndir",
 
   "keys.intro": "Kamera penceresi öndeyken:",
   "keys.mirror": "Ayna",

@@ -378,6 +378,24 @@ shortcutSelect.addEventListener("change", () =>
   send({ key: "hideShortcut", value: shortcutSelect.value })
 );
 
+const setCheckUpdates = toggle("check-updates", (value) =>
+  send({ key: "checkUpdates", value })
+);
+const versionHint = byId("version-hint");
+const downloadButton = byId("download");
+downloadButton.addEventListener("click", () => send({ key: "download" }));
+
+function showVersion(state: State): void {
+  setCheckUpdates(state.checkUpdates);
+  const current = t("settings.version", { version: state.version });
+  versionHint.textContent = state.newVersion
+    ? t("settings.newVersion", { new: state.newVersion, version: state.version })
+    : state.checkUpdates
+      ? `${current} ${t("settings.checkUpdatesHint")}`
+      : current;
+  downloadButton.hidden = !state.newVersion;
+}
+
 // ---- State ------------------------------------------------------------------------
 
 function render(state: State): void {
@@ -408,6 +426,7 @@ function render(state: State): void {
   if (!inUse(shortcutSelect)) shortcutSelect.value = state.hideShortcut;
   byId("hide-shortcut-taken").hidden = !state.shortcutTaken;
   byId("hide-shortcut-hint").hidden = state.shortcutTaken || state.hideShortcut === "Off";
+  showVersion(state);
 }
 
 // Shown once it has something to show (main.ts placed it next to the camera)

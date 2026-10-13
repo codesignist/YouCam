@@ -17,6 +17,7 @@ A small webcam window for YouTubers and streamers. It keeps your camera on scree
 - Hide and show it from anywhere with `Ctrl+Shift+Y`, even with a game in front; the camera is off while it is hidden
 - Says what is wrong when the camera can't start, and reconnects by itself when it comes back
 - Remembers the camera, the settings and where the window was
+- Tells you when a new version is out: it asks GitHub at start and once a day, which can be turned off in the settings
 - In English or Turkish: it follows Windows' language, or you can pick one in the settings
 
 ## Download
