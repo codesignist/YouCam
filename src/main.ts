@@ -905,8 +905,9 @@ function setHideShortcut(label: string): void {
 }
 
 // Starting YouCam again (e.g. from the Start menu while it is hidden) brings
-// this window back instead of opening a second one (see src-tauri)
-await listen("youcam:second-instance", () => void setHidden(false));
+// this window back instead of opening a second one (see src-tauri). Not
+// awaited: events must wait until the rest of this page is set up.
+void listen("youcam:second-instance", () => void setHidden(false));
 
 // ---- Background effects ------------------------------------------------------
 
