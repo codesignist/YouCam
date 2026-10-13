@@ -41,6 +41,7 @@ import {
   borderWidthRange,
   hideShortcuts,
   isColor,
+  opacityRange,
   pictureRange,
   qualities,
   shapes,
@@ -67,6 +68,8 @@ const backgroundCanvas = document.getElementById(
 
 let isMirror = localStorage.getItem("isMirror") === "true";
 let alwaysOnTop = localStorage.getItem("alwaysOnTop") !== "false";
+let opacity = savedNumber("opacity", opacityRange, 100);
+let clickThrough = localStorage.getItem("clickThrough") === "true";
 let deg = normalizeDeg(parseInt(localStorage.getItem("deg") ?? "", 10) || 0);
 // Unbounded copy of deg for the CSS transform, so the transition always
 // turns 90deg the short way (270 -> 360 instead of spinning back to 0)
@@ -169,6 +172,7 @@ function bounds(): Bounds {
 }
 let monitors: Monitor[] = await availableMonitors();
 await win.setAlwaysOnTop(alwaysOnTop);
+await win.setIgnoreCursorEvents(clickThrough);
 
 // ---- Menu (right-click and tray) -------------------------------------------
 
@@ -204,6 +208,12 @@ function buildMenuEntries(): MenuEntry[] {
       label: t("menu.screenLight"),
       checked: light !== null,
       action: toggleScreenLight,
+    },
+    // Turned off from the tray menu, as this window then can't be clicked
+    {
+      label: t("menu.clickThrough"),
+      checked: clickThrough,
+      action: () => setClickThrough(!clickThrough),
     },
     { separator: true },
     { label: t("menu.settings"), action: () => void openSettings() },
@@ -579,6 +589,29 @@ function toggleAlwaysOnTop(): void {
   setAlwaysOnTop(!alwaysOnTop);
 }
 
+function updateOpacity(): void {
+  document.documentElement.style.setProperty("--opacity", String(opacity / 100));
+}
+updateOpacity();
+
+function setOpacity(value: number): void {
+  if (!Number.isFinite(value)) return;
+  opacity = Math.min(Math.max(value, opacityRange.min), opacityRange.max);
+  localStorage.setItem("opacity", String(opacity));
+  updateOpacity();
+  stateChanged();
+}
+
+// Clicks, the wheel and right-clicks go to whatever is under the window, e.g.
+// a game, so it can't be dragged, resized or right-clicked meanwhile
+function setClickThrough(value: boolean): void {
+  clickThrough = value;
+  localStorage.setItem("clickThrough", String(clickThrough));
+  void win.setIgnoreCursorEvents(clickThrough);
+  if (clickThrough) showClickThroughNotice();
+  stateChanged();
+}
+
 // ---- Screen light ------------------------------------------------------------
 
 // A separate plain window (light.html) to light your face with a monitor,
@@ -681,6 +714,8 @@ function currentState(): State {
     borderColor,
     borderWidth,
     alwaysOnTop,
+    opacity,
+    clickThrough,
     screenLight: light !== null,
     hideShortcut,
     language,
@@ -755,6 +790,12 @@ function applyChange(change: Change): void {
       break;
     case "alwaysOnTop":
       setAlwaysOnTop(change.value);
+      break;
+    case "opacity":
+      setOpacity(change.value);
+      break;
+    case "clickThrough":
+      setClickThrough(change.value);
       break;
     case "screenLight":
       if (change.value !== (light !== null)) toggleScreenLight();
@@ -846,6 +887,13 @@ function showNotice(message: Message, ms = 4000): boolean {
   noticeTimer = setTimeout(() => renderMessage(null), ms);
   return true;
 }
+
+// Says how to get the window back, which otherwise looks stuck
+function showClickThroughNotice(): void {
+  showNotice({ title: t("message.clickThrough"), hint: t("message.clickThroughHint") });
+}
+// Also at start, when it is still on from last time
+if (clickThrough) showClickThroughNotice();
 
 // ---- Hiding ------------------------------------------------------------------
 

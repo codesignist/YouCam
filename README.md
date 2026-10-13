@@ -10,6 +10,7 @@ YouTuber'lar ve yayıncılar için küçük bir webcam penceresi. Kameranızı d
 
 - Daire, altıgen, yuvarlak köşeli ya da kare şekil; istenirse renkli çerçeve
 - Diğer pencerelerin üstünde durur; sürükleyerek taşınır, üstünde tekerlekle büyütülüp küçültülür
+- Yarı saydam yapılabilir ve tıklamaları altındakine geçirebilir; örneğin bir oyunun üstünde
 - Dijital yakınlaştırma: `Ctrl`+tekerlekle yüzünüze yakınlaşır, `Ctrl`+sürüklemeyle görüntüyü kaydırırsınız
 - Arka planı bulanıklaştırma ya da koyu bulanıklaştırma; bilgisayarınızda yapılır, hiçbir yere gönderilmez
 - Parlaklık, kontrast, siyah-beyaz, ayna ve döndürme
@@ -31,7 +32,7 @@ YouCam kod imzalı değil, bu yüzden ilk çalıştırmada Windows SmartScreen u
 
 ## Kullanım
 
-Kamerayı sürükleyerek taşıyın, üstünde tekerleği çevirerek boyutunu değiştirin. `Ctrl` basılıyken tekerlek görüntüyü farenin olduğu yere yakınlaştırır, sürükleme de görüntüyü kaydırır. Sağ tık menüsünde kamera, arka plan, ayna, ekran ışığı, ayarlar, gizle ve çıkış var. Diğer her şey ayarlar penceresinde (Settings... ya da `S`); kameranın yanında açılır, her değişikliği yaparken görürsünüz.
+Kamerayı sürükleyerek taşıyın, üstünde tekerleği çevirerek boyutunu değiştirin. `Ctrl` basılıyken tekerlek görüntüyü farenin olduğu yere yakınlaştırır, sürükleme de görüntüyü kaydırır. Sağ tık menüsünde kamera, arka plan, ayna, ekran ışığı, tıklamaları geçir, ayarlar, gizle ve çıkış var. Tıklamaları geçir açıkken kameraya tıklanamaz; tray simgesinin menüsünden ya da ayarlardan kapatılır. Diğer her şey ayarlar penceresinde (Settings... ya da `S`); kameranın yanında açılır, her değişikliği yaparken görürsünüz.
 
 | Tuş | İşlev |
 |---|---|

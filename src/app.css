@@ -4,6 +4,7 @@
   --radius: 50%;
   --filter: none;
   --view-box: none;
+  --opacity: 1;
 }
 
 html,
@@ -73,6 +74,14 @@ video {
 video,
 canvas {
   filter: var(--filter);
+}
+
+/* The picture and its border let what is under the window show through; a
+   message about the camera stays easy to read */
+video,
+canvas,
+#border {
+  opacity: var(--opacity);
 }
 
 canvas {

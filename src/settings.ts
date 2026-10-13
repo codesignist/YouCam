@@ -15,6 +15,7 @@ import {
   borderColors,
   borderWidthRange,
   hideShortcuts,
+  opacityRange,
   pictureRange,
   qualities,
   shapes,
@@ -346,6 +347,12 @@ function showBorder(state: State): void {
 const setAlwaysOnTop = toggle("always-on-top", (value) =>
   send({ key: "alwaysOnTop", value })
 );
+const setOpacity = slider("opacity", opacityRange, percent, (value) =>
+  send({ key: "opacity", value })
+);
+const setClickThrough = toggle("click-through", (value) =>
+  send({ key: "clickThrough", value })
+);
 const setScreenLight = toggle("screen-light", (value) =>
   send({ key: "screenLight", value })
 );
@@ -422,6 +429,8 @@ function render(state: State): void {
   showBorder(state);
 
   setAlwaysOnTop(state.alwaysOnTop);
+  setOpacity(state.opacity);
+  setClickThrough(state.clickThrough);
   setScreenLight(state.screenLight);
   if (!inUse(shortcutSelect)) shortcutSelect.value = state.hideShortcut;
   byId("hide-shortcut-taken").hidden = !state.shortcutTaken;

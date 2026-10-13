@@ -16,6 +16,9 @@ export const shapes = [
   { label: "Hexagon", radius: "50%" },
 ];
 
+// The camera's opacity in percent; below 100 what is under it shows through
+export const opacityRange = { min: 20, max: 100, step: 5 };
+
 // Window widths in logical pixels; the mouse wheel gives any size in between
 export const sizes = [
   { label: "Small", width: 240 },
@@ -78,6 +81,8 @@ export interface Settings {
   borderColor: string; // "off" or #rrggbb
   borderWidth: number;
   alwaysOnTop: boolean;
+  opacity: number;
+  clickThrough: boolean; // clicks go to the window underneath
   screenLight: boolean;
   hideShortcut: string;
   language: Language;
